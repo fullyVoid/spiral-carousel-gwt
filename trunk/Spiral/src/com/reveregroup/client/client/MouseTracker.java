@@ -54,11 +54,6 @@ public class MouseTracker {
 		});
 	}
 	
-	private native void log(String s) /*-{
-		if(console){
-		console.log(s);
-		}
-	}-*/;
 	private class CTimer extends Timer{
 		@Override
 		public void run() {

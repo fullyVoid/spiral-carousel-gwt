@@ -24,4 +24,10 @@ public class Utils {
 		element.unselectable = 'on';
 		element.onselectstart = function() { return false; };
 	}-*/;
+	
+	native public static void log(String s) /*-{
+		if (console) {
+			console.log(s);
+		}
+	}-*/;
 }
