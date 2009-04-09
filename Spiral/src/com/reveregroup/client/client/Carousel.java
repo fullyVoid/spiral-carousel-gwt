@@ -10,7 +10,6 @@ import com.google.gwt.event.dom.client.MouseMoveEvent;
 import com.google.gwt.event.dom.client.MouseMoveHandler;
 import com.google.gwt.event.dom.client.MouseUpEvent;
 import com.google.gwt.event.dom.client.MouseUpHandler;
-import com.google.gwt.event.dom.client.DomEvent.Type;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.AbsolutePanel;
@@ -48,9 +47,8 @@ public class Carousel extends AbsolutePanel {
 		images = new Image[8];
 		for (int i = 0; i < images.length; i++) {
 			images[i] = new Image();
-//			images[i].getElement().getStyle().setProperty("MozUserSelect", "none");
-//			images[i].getElement().setAttribute("unselectable", "on");
-//			images[i].getElement().setAttribute("onselectstart", "return false;");
+			Utils.preventDrag(images[i]);
+			Utils.preventSelection(images[i].getElement());
 			this.add(images[i]);
 		}
 	}

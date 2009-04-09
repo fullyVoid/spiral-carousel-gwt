@@ -30,6 +30,7 @@ public class MouseTracker {
 				// TODO Auto-generated method stub
 				if((event.getNativeButton() & NativeEvent.BUTTON_LEFT) != 0){
 					lastXValue = event.getX();
+					setVelocity(0.0);
 				}
 			}
 		});
@@ -40,7 +41,7 @@ public class MouseTracker {
 				if(mouseDown == true){
 					int distance = event.getX() - lastXValue;
 					System.out.println("Distance: " + distance);
-					setVelocity(distance/100.0);
+					setVelocity(distance/50.0);
 					lastXValue = event.getX();
 				}
 			}
@@ -49,7 +50,6 @@ public class MouseTracker {
 			public void onMouseUp(MouseUpEvent event) {
 				// TODO Auto-generated method stub
 				mouseDown = false;
-				setVelocity(0.0);
 			}
 		});
 	}
@@ -70,11 +70,16 @@ public class MouseTracker {
 	}
 	private void setVelocity(double velocity) {
 		this.velocity = velocity;
-		if(velocity  > -.03 && velocity < .03){
-			if(timerRun == true){ctimer.cancel();}
-			velocity = 0;
-		}else if(timerRun == false){		
+		if (velocity  > -.01 && velocity < .01) {
+			if (timerRun){
+				ctimer.cancel(); 
+				timerRun = false;
+			}
+			this.velocity = 0;
+		} else if (!timerRun) {		
 			ctimer.scheduleRepeating(33);
+			timerRun = true;
+			ctimer.run();
 		}
 	}
 }
