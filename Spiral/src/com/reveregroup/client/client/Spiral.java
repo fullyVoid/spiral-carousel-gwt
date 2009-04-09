@@ -31,7 +31,8 @@ public class Spiral implements EntryPoint {
 		photos.add(new Photo(GWT.getModuleBaseURL()+"img"+(i+1+".bmp")));		
 	}
     carousel = new Carousel();
-    carousel.setPhotos(photos);    
+    carousel.setPhotos(photos);
+    MouseTracker mouseTracker = new MouseTracker(carousel);
     Button clockwise = new Button("prev");
     clockwise.addClickHandler(new ClickHandler(){
 		public void onClick(ClickEvent event) {
