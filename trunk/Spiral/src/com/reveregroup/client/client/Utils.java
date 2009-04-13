@@ -30,4 +30,26 @@ public class Utils {
 			console.log(s);
 		}
 	}-*/;
+	
+	public static double distanceForOneTick(double velocity, double acceleration) {
+		return velocity * (acceleration - 1) / Math.log(acceleration);
+	}
+	
+	public static double velocityForDistance(double distance, double acceleration, double finalVelocity) {
+		if (distance < 0)
+			finalVelocity = -finalVelocity;
+		return finalVelocity - distance * Math.log(acceleration);
+	}
+	
+	public static double ticksFromStartingVelocity(double velocity, double acceleration, double finalVelocity) {
+		if (velocity < 0)
+			finalVelocity = -finalVelocity;
+		return Math.log(finalVelocity / velocity) / Math.log(acceleration); 
+	}
+	
+	public static double distanceFromStartingVelocity(double velocity, double acceleration, double finalVelocity) {
+		if (velocity < 0)
+			finalVelocity = -finalVelocity;
+		return (finalVelocity - velocity) / Math.log(acceleration);
+	}
 }
