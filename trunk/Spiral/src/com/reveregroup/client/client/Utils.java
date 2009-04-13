@@ -52,4 +52,24 @@ public class Utils {
 			finalVelocity = -finalVelocity;
 		return (finalVelocity - velocity) / Math.log(acceleration);
 	}
+	
+	public static int modulus(int a, int b){
+		if(a < 0){
+			return ((a % b) + b);
+		}else if (a == 0){
+			return 0;
+		}
+		return a % b;
+	}
+	
+	public static double modulus (double a, int b){
+		if (a == 0.0)
+			return 0.0;
+		
+		a = a - b * (((int) a) / b);
+		if (a < 0.0)
+			a += b;
+		
+		return a;
+	}
 }
