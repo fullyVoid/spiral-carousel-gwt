@@ -2,6 +2,8 @@ package com.reveregroup.client.client;
 
 import java.util.List;
 
+import org.apache.commons.el.ModulusOperator;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -35,9 +37,17 @@ public class Carousel extends AbsolutePanel {
 	
 	private Grid grid;
 	
+	private boolean focused;
+	
+	private int height;
+	
+	private int width;
+	
 	public Carousel() {
 		this.setWidth("800");
+		this.width = 800;
 		this.setHeight("400");
+		this.height = 400;
 		this.getElement().getStyle().setProperty("MozUserSelect", "none");
 		this.getElement().setAttribute("unselectable", "on");
 		this.getElement().setAttribute("onselectstart", "return false;");
@@ -50,7 +60,7 @@ public class Carousel extends AbsolutePanel {
 			images[i].getElement().getStyle().setProperty("display", "none");
 			images[i].addClickHandler(new ClickHandler() {
 				public void onClick(ClickEvent event) {
-					Image img = (Image) event.getSource();
+					Image img = (Image) event.getSource();					
 					for (int i = 0; i < images.length; i++) {						
 						if (images[i] == img) {
 							int pIndex = i-preLoadSize + photoIndex;
@@ -60,11 +70,14 @@ public class Carousel extends AbsolutePanel {
 							PhotoClickEvent pcEvent = new PhotoClickEvent();
 							pcEvent.setPhotoIndex(pIndex);
 							pcEvent.setPhoto(photos.get(pIndex));
-							fireEvent(pcEvent);									
-							rotateTo(pIndex);
+							fireEvent(pcEvent);																
 							if(pIndex == getCurrentPhotoIndex()){
 								//image is in front create panel to show
-								
+								focused = !focused;
+								placeImages();
+								//Window.alert("HELLO");
+							}else{
+								rotateTo(pIndex);
 							}
 							break;
 						}
@@ -88,28 +101,60 @@ public class Carousel extends AbsolutePanel {
 		// Places images in the correct spots
 		double degreeOffset = 0.0;
 		double rotationDecimal = currentRotation - Math.floor(currentRotation);
+		int frontImage = 0;
+		if(rotationDecimal < .5){
+			frontImage = 4;
+		}else{
+			frontImage = 5;
+		}
+		
 		int wholeMovements = (int)Math.floor(currentRotation);
 		this.setPhotoIndex(wholeMovements);		
 		degreeOffset = -(rotationDecimal * ((Math.PI) / 4));
 		//degreeOffset = direction * (((Math.PI / 4) / totalRotations) * rotationIncrement);
 		for (int i = 0; i < this.carouselSize; i++) {
-			double finalDegree = ((i * Math.PI) / 4) + degreeOffset;
-			double scale = 0.0;
-			double x = Math.sin(finalDegree);
-			double y = -Math.cos(finalDegree);
-			scale = Math.pow(2, y);
-			int zindex = (int) (y * 10);
-			zindex += 10;		
-			images[i+preLoadSize].getElement().getStyle().setProperty("zIndex",
-					Integer.toString(zindex));
-			// images[i].getElement().setAttribute("style","z-index:"+Integer.toString(zindex));
-			images[i+preLoadSize].setSize(Double.toString((80 * scale)), Double
-					.toString(80 * scale));
-			int xcoord = (int) (x * 300) + 400;
-			xcoord -= 40 * scale;
-			int ycoord = (int) (y * 75) + 100;
-			ycoord -= 40 * scale;
-			this.setWidgetPosition(images[i+preLoadSize], xcoord, ycoord);
+			if(i == frontImage && focused){
+				images[i+preLoadSize].setSize("", "");
+				double height = images[i+preLoadSize].getHeight();
+				double width = images[i+preLoadSize].getWidth();
+				
+				double aspectRatio = height / width;
+				double containerAR = ((double)this.height) / ((double)this.width);
+				
+				if (aspectRatio >= containerAR){
+					//limit height
+					if(height > this.height){
+						images[i+preLoadSize].setSize("", Integer.toString(this.height));
+					}
+				} else {
+					//limit width
+					if(width > this.width){
+						images[i+preLoadSize].setSize(Integer.toString(this.width),"");
+					}					
+				}
+				images[i+preLoadSize].getElement().getStyle().setProperty("zIndex", "21");
+				int xcoord = (int)(this.width - width)/2;
+				int ycoord = (int)(this.height - height)/2;
+				this.setWidgetPosition(images[i+preLoadSize], xcoord, ycoord);				
+			} else {
+				double finalDegree = ((i * Math.PI) / 4) + degreeOffset;
+				double scale = 0.0;
+				double x = Math.sin(finalDegree);
+				double y = -Math.cos(finalDegree);
+				scale = Math.pow(2, y);
+				int zindex = (int) (y * 10);
+				zindex += 10;		
+				images[i+preLoadSize].getElement().getStyle().setProperty("zIndex",
+						Integer.toString(zindex));
+				// images[i].getElement().setAttribute("style","z-index:"+Integer.toString(zindex));
+				images[i+preLoadSize].setSize(Double.toString((80 * scale)), Double
+						.toString(80 * scale));
+				int xcoord = (int) (x * 300) + 400;
+				xcoord -= 40 * scale;
+				int ycoord = (int) (y * 75) + 100;
+				ycoord -= 40 * scale;
+				this.setWidgetPosition(images[i+preLoadSize], xcoord, ycoord);
+			}
 		}
 //		for(int i = 0; i < grid.getColumnCount();i++){
 //			((Image)(grid.getWidget(0, i))).setUrl(images[i].getUrl());

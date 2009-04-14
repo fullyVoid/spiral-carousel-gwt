@@ -21,7 +21,7 @@ public class Spiral implements EntryPoint {
 	public void onModuleLoad() {
 	photos = new ArrayList<Photo>(10);
 	for(int i = 0; i < 10;i++){
-		photos.add(new Photo(GWT.getModuleBaseURL()+"img"+(i+1+".bmp")));		
+		photos.add(new Photo(GWT.getModuleBaseURL()+(i+1+".JPG")));		
 	}
     carousel = new Carousel();
     carousel.setPhotos(photos);
