@@ -1,10 +1,11 @@
-package com.reveregroup.client.client;
+package com.reveregroup.carousel.client;
 
 public class Photo{
 	private String url;
 	private String caption;
 	private int height;
 	private int width;
+	private int photoId;
 	
 	public Photo(String url){
 		this.url = url;
@@ -38,6 +39,12 @@ public class Photo{
 	}
 	public void setWidth(int width) {
 		this.width = width;
+	}
+	public void setPhotoId(int photoId) {
+		this.photoId = photoId;
+	}
+	public int getPhotoId() {
+		return photoId;
 	}
 	
 	

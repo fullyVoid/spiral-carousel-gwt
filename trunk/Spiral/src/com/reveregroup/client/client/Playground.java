@@ -1,4 +1,4 @@
-package com.reveregroup.client.client;
+package com.reveregroup.carousel.client;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;

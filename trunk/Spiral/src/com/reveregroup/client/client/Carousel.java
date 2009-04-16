@@ -1,60 +1,69 @@
-package com.reveregroup.client.client;
+package com.reveregroup.carousel.client;
 
 import java.util.List;
 
-import org.apache.commons.el.ModulusOperator;
-
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.MouseDownEvent;
 import com.google.gwt.event.dom.client.MouseDownHandler;
-import com.google.gwt.event.dom.client.MouseEvent;
 import com.google.gwt.event.dom.client.MouseMoveEvent;
 import com.google.gwt.event.dom.client.MouseMoveHandler;
 import com.google.gwt.event.dom.client.MouseUpEvent;
 import com.google.gwt.event.dom.client.MouseUpHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
-import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AbsolutePanel;
+import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.RootPanel;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.DockPanel.DockLayoutConstant;
+import com.reveregroup.carousel.client.events.PhotoClickEvent;
+import com.reveregroup.carousel.client.events.PhotoClickHandler;
+import com.reveregroup.carousel.client.events.PhotoFocusEvent;
+import com.reveregroup.carousel.client.events.PhotoFocusHandler;
+import com.reveregroup.carousel.client.events.PhotoToFrontEvent;
+import com.reveregroup.carousel.client.events.PhotoToFrontHandler;
 
-public class Carousel extends AbsolutePanel {
+public class Carousel extends Composite {
 	private List<Photo> photos;
-	private Image[] images;
+	private CarouselImage[] images;
 
+	//Panels and label for the UI
+	private DockPanel carouselDock;
+	
+	private AbsolutePanel imagePanel;
+	
+	private Label caption;
+	
 	private double currentRotation = 0.0;
 	
-	private int photoIndex = 0;
+	private int currentPhotoIndex = 0; //the photo that is currently in front
+	
+	private int photoIndex = 0; //the current offset in the photo list
 	
 	private int carouselSize = 8;
 	
 	private int preLoadSize = 3;
 	
-	private Grid grid;
-	
 	private boolean focused;
 	
-	private int height;
-	
-	private int width;
-	
 	public Carousel() {
-		this.setWidth("800");
-		this.width = 800;
-		this.setHeight("400");
-		this.height = 400;
-		this.getElement().getStyle().setProperty("MozUserSelect", "none");
-		this.getElement().setAttribute("unselectable", "on");
-		this.getElement().setAttribute("onselectstart", "return false;");
-		
-		images = new Image[this.carouselSize+(this.preLoadSize*2)];
+		carouselDock = new DockPanel();
+		carouselDock.setSize("800", "400");		
+		imagePanel = new AbsolutePanel();
+		imagePanel.setSize("100%", "100%");
+		caption = new Label();
+		carouselDock.add(caption, DockPanel.SOUTH);
+		carouselDock.add(imagePanel, DockPanel.NORTH);
+		carouselDock.setCellHeight(caption, "15");
+		carouselDock.setCellHeight(imagePanel, "100%");
+		carouselDock.setCellHorizontalAlignment(caption, DockPanel.ALIGN_CENTER);
+		Utils.preventSelection(carouselDock.getElement());
+		images = new CarouselImage[this.carouselSize+(this.preLoadSize*2)];
 		for (int i = 0; i < images.length; i++) {
-			images[i] = new Image();
+			images[i] = new CarouselImage();
 			Utils.preventDrag(images[i]);
 			Utils.preventSelection(images[i].getElement());
 			images[i].getElement().getStyle().setProperty("display", "none");
@@ -70,12 +79,17 @@ public class Carousel extends AbsolutePanel {
 							PhotoClickEvent pcEvent = new PhotoClickEvent();
 							pcEvent.setPhotoIndex(pIndex);
 							pcEvent.setPhoto(photos.get(pIndex));
-							fireEvent(pcEvent);																
+							fireEvent(pcEvent);												
 							if(pIndex == getCurrentPhotoIndex()){
 								//image is in front create panel to show
 								focused = !focused;
+								if(focused){
+									PhotoFocusEvent focusevent= new PhotoFocusEvent();
+									focusevent.setPhoto(photos.get(pIndex));
+									focusevent.setPhotoIndex(getCurrentPhotoIndex());
+									fireEvent(event);
+								}
 								placeImages();
-								//Window.alert("HELLO");
 							}else{
 								rotateTo(pIndex);
 							}
@@ -84,20 +98,20 @@ public class Carousel extends AbsolutePanel {
 					}
 				}
 			});
-			this.add(images[i]);
+			imagePanel.add(images[i]);
 		}
-		
-		
-//		this.grid = new Grid(1,14);
-//		for(int i = 0; i < grid.getColumnCount();i++){
-//			grid.setWidget(0, i, new Image());
-//			((Image)(grid.getWidget(0, i))).setHeight("50");
-//			((Image)(grid.getWidget(0, i))).setWidth("50");
-//		}
-//		RootPanel.get().add(grid);
+		this.initWidget(carouselDock);
+		addPhotoToFrontHandler(new PhotoToFrontHandler(){
+			public void photoToFront(PhotoToFrontEvent event) {
+				caption.setText(event.getPhoto().getCaption());
+			}
+		});
 	}
 
 	private void placeImages() {
+		int offsetWidth = imagePanel.getOffsetWidth();
+		int offsetHeight = imagePanel.getOffsetHeight();
+		
 		// Places images in the correct spots
 		double degreeOffset = 0.0;
 		double rotationDecimal = currentRotation - Math.floor(currentRotation);
@@ -113,29 +127,18 @@ public class Carousel extends AbsolutePanel {
 		degreeOffset = -(rotationDecimal * ((Math.PI) / 4));
 		//degreeOffset = direction * (((Math.PI / 4) / totalRotations) * rotationIncrement);
 		for (int i = 0; i < this.carouselSize; i++) {
+			CarouselImage image = images[i+preLoadSize];
 			if(i == frontImage && focused){
-				images[i+preLoadSize].setSize("", "");
-				double height = images[i+preLoadSize].getHeight();
-				double width = images[i+preLoadSize].getWidth();
 				
-				double aspectRatio = height / width;
-				double containerAR = ((double)this.height) / ((double)this.width);
-				
-				if (aspectRatio >= containerAR){
-					//limit height
-					if(height > this.height){
-						images[i+preLoadSize].setSize("", Integer.toString(this.height));
-					}
+				if(image.getOriginalHeight() > offsetHeight || image.getOriginalWidth() > offsetWidth){
+					image.sizeToBounds(offsetHeight, offsetWidth);
 				} else {
-					//limit width
-					if(width > this.width){
-						images[i+preLoadSize].setSize(Integer.toString(this.width),"");
-					}					
+					image.setSize("", "");
 				}
-				images[i+preLoadSize].getElement().getStyle().setProperty("zIndex", "21");
-				int xcoord = (int)(this.width - width)/2;
-				int ycoord = (int)(this.height - height)/2;
-				this.setWidgetPosition(images[i+preLoadSize], xcoord, ycoord);				
+				image.getElement().getStyle().setProperty("zIndex", "21");
+				int xcoord = (int)(offsetWidth - images[i+preLoadSize].getWidth())/2;
+				int ycoord = (int)(offsetHeight - images[i+preLoadSize].getHeight())/2;
+				imagePanel.setWidgetPosition(image, xcoord, ycoord);		
 			} else {
 				double finalDegree = ((i * Math.PI) / 4) + degreeOffset;
 				double scale = 0.0;
@@ -146,19 +149,13 @@ public class Carousel extends AbsolutePanel {
 				zindex += 10;		
 				images[i+preLoadSize].getElement().getStyle().setProperty("zIndex",
 						Integer.toString(zindex));
-				// images[i].getElement().setAttribute("style","z-index:"+Integer.toString(zindex));
-				images[i+preLoadSize].setSize(Double.toString((80 * scale)), Double
-						.toString(80 * scale));
-				int xcoord = (int) (x * 300) + 400;
-				xcoord -= 40 * scale;
-				int ycoord = (int) (y * 75) + 100;
-				ycoord -= 40 * scale;
-				this.setWidgetPosition(images[i+preLoadSize], xcoord, ycoord);
+				image.sizeToBounds((int)(scale * 80), (int)(scale * 80));
+				
+				int xcoord = (int) (x * 300) + (offsetWidth - image.getWidth()) / 2;
+				int ycoord = (int) (y * 75) + (offsetHeight - image.getHeight()) / 2 - 40;
+				imagePanel.setWidgetPosition(image, xcoord, ycoord);
 			}
 		}
-//		for(int i = 0; i < grid.getColumnCount();i++){
-//			((Image)(grid.getWidget(0, i))).setUrl(images[i].getUrl());
-//		}
 	}
 
 	public void setPhotos(List<Photo> photos){
@@ -187,7 +184,7 @@ public class Carousel extends AbsolutePanel {
 			if (shiftOffset > 0) {				
 				// Next
 				//Creating temp array of images to hold shifted images
-				Image[] temps = new Image[shiftOffset];
+				CarouselImage[] temps = new CarouselImage[shiftOffset];
 				for(int j = 0; j < temps.length; j++){
 					temps[j] = images[j];
 				}
@@ -204,7 +201,7 @@ public class Carousel extends AbsolutePanel {
 			} else if (shiftOffset < 0) {
 				shiftOffset *= -1;
 				// Prev
-				Image[] temps = new Image[shiftOffset];
+				CarouselImage[] temps = new CarouselImage[shiftOffset];
 				for(int j = 0; j < temps.length; j++){
 					temps[j] = images[j+images.length - shiftOffset];
 				}
@@ -263,8 +260,23 @@ public class Carousel extends AbsolutePanel {
 	public double getCurrentRotation() {
 		return currentRotation;
 	}
-	public void setCurrentRotation(double value) {
+	private void setCurrentRotation(double value) {
+		int pi = getCurrentPhotoIndex();
 		currentRotation = Utils.modulus(value, photos.size());
+		currentPhotoIndex = Utils.modulus((int)Math.round(currentRotation + 4.0),photos.size());
+		if (pi != getCurrentPhotoIndex()) {
+			PhotoToFrontEvent event = new PhotoToFrontEvent();
+			event.setPhoto(photos.get(getCurrentPhotoIndex()));
+			event.setPhotoIndex(getCurrentPhotoIndex());
+			//caption.setText(photos.get(getCurrentPhotoIndex()).getCaption());
+			fireEvent(event);
+			if(focused){
+				PhotoFocusEvent focusedEvent = new PhotoFocusEvent();
+				event.setPhoto(photos.get(getCurrentPhotoIndex()));
+				event.setPhotoIndex(getCurrentPhotoIndex());
+				fireEvent(focusedEvent);
+			}
+		}
 		placeImages();
 	}
 	
@@ -290,7 +302,12 @@ public class Carousel extends AbsolutePanel {
 		rotateTo(Math.round(currentRotation) + 1.0 + 4.0);
 	}	
 	
-	
+	public HandlerRegistration addPhotoFocusHandler(PhotoFocusHandler handler){
+		return addHandler(handler, PhotoFocusEvent.getType());
+	}
+	public HandlerRegistration addPhotoToFrontHandler(PhotoToFrontHandler handler){
+		return addHandler(handler,PhotoToFrontEvent.getType());
+	}
 	
 	public HandlerRegistration addClickHandler(ClickHandler handler) {		
 		return addDomHandler(handler, ClickEvent.getType());		
@@ -309,7 +326,7 @@ public class Carousel extends AbsolutePanel {
 	}
 	
 	public int getCurrentPhotoIndex(){
-		return Utils.modulus((int)Math.round(currentRotation + 4.0),photos.size());	
+		return currentPhotoIndex;
 	}
 	public HandlerRegistration addPhotoClickedHandler(PhotoClickHandler handler){
 		return addHandler(handler, PhotoClickEvent.getType());
