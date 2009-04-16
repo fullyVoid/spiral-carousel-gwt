@@ -1,4 +1,4 @@
-package com.reveregroup.client.client;
+package com.reveregroup.carousel.client;
 
 import java.util.List;
 

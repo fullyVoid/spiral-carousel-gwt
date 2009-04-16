@@ -1,4 +1,4 @@
-package com.reveregroup.client.client;
+package com.reveregroup.carousel.client;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +11,8 @@ import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.RootPanel;
+import com.reveregroup.carousel.client.events.PhotoClickEvent;
+import com.reveregroup.carousel.client.events.PhotoClickHandler;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
@@ -20,11 +22,20 @@ public class Spiral implements EntryPoint {
   private List<Photo> photos;
 	public void onModuleLoad() {
 	photos = new ArrayList<Photo>(10);
-	for(int i = 0; i < 10;i++){
-		photos.add(new Photo(GWT.getModuleBaseURL()+(i+1+".JPG")));		
+	Photo photo;
+	for(int i = 0; i < 25;i++){
+		photo = new Photo(GWT.getModuleBaseURL()+"sample"+(i+1+".jpg"));
+		photo.setCaption("This is photo caption number: " + i);
+		photo.setPhotoId(i);
+		photos.add(photo);
 	}
     carousel = new Carousel();
     carousel.setPhotos(photos);
+    //carousel set phototray with panel passed in
+    //create panel and it will have hello world
+    //custom panel that extends panel implements photoId setter
+    //inside carousel call tray.set photoID
+    //
     MouseTracker mouseTracker = new MouseTracker(carousel);
     carousel.getElement().getStyle().setProperty("backgroundColor", "silver");
     Button clockwise = new Button("prev");
@@ -40,6 +51,12 @@ public class Spiral implements EntryPoint {
     		// TODO Auto-generated method stub
     		carousel.next();
     	}	
+    });    
+    carousel.addPhotoClickedHandler(new PhotoClickHandler(){
+		public void photoClicked(PhotoClickEvent event) {
+			// TODO Auto-generated method stub
+			
+		}
     });
     RootPanel.get("carouselDiv").add(carousel);
     RootPanel.get().add(clockwise);

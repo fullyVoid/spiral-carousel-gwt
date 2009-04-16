@@ -1,19 +1,12 @@
-package com.reveregroup.client.client;
+package com.reveregroup.carousel.client;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.MouseDownEvent;
 import com.google.gwt.event.dom.client.MouseDownHandler;
 import com.google.gwt.event.dom.client.MouseMoveEvent;
 import com.google.gwt.event.dom.client.MouseMoveHandler;
-import com.google.gwt.event.dom.client.MouseUpEvent;
-import com.google.gwt.event.dom.client.MouseUpHandler;
-import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.Event;
-import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.Event.NativePreviewEvent;
-import com.google.gwt.user.client.ui.RootPanel;
 
 public class MouseTracker {
 //	private  double accelValue;
@@ -25,8 +18,7 @@ public class MouseTracker {
 	boolean timerRun = false;
 	public MouseTracker(Carousel theCarousel){		
 		this.carousel = theCarousel;
-//		ctimer = new CTimer();		
-		HandlerRegistration  mouseDownHandler= carousel.addMouseDownHandler(new MouseDownHandler(){
+		carousel.addMouseDownHandler(new MouseDownHandler(){
 			public void onMouseDown(MouseDownEvent event) {
 				mouseDown = true;
 				// TODO Auto-generated method stub
@@ -36,13 +28,12 @@ public class MouseTracker {
 				}
 			}
 		});
-		HandlerRegistration mouseMoveHandler = carousel.addMouseMoveHandler(new MouseMoveHandler(){
+		carousel.addMouseMoveHandler(new MouseMoveHandler(){
 			public void onMouseMove(MouseMoveEvent event) {
 				// TODO Auto-generated method stub		
 				//log(Integer.toString(event.getNativeButton()));
 				if(mouseDown == true){
 					int distance = event.getX() - lastXValue;
-					System.out.println("Distance: " + distance);
 					carousel.setVelocity(distance/50.0);
 					lastXValue = event.getX();
 				}

@@ -1,4 +1,4 @@
-package com.reveregroup.client.client;
+package com.reveregroup.carousel.client;
 
 public interface DataProvider<DATATYPE> {
 	public int size();
