@@ -9,7 +9,7 @@ public class CarouselImage extends Image{
 	private int originalWidth = 0;
 	public CarouselImage(){
 		super();
-		addDomHandler(new LoadHandler(){
+		addLoadHandler(new LoadHandler(){
 			public void onLoad(LoadEvent event) {
 				// TODO Auto-generated method stub
 				setSize("", "");
@@ -19,7 +19,7 @@ public class CarouselImage extends Image{
 				originalWidth = getWidth();
 				getElement().getStyle().setProperty("display", oldDisplay);
 			}
-		}, LoadEvent.getType());
+		});
 	}
 	
 	@Override
