@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <project name="Spiral" default="build" basedir=".">
   <!-- Configure path to GWT SDK -->
-  <property name="gwt.sdk" location="C:/Program Files/gwt-windows-1.6.3" />
+  <property name="gwt.sdk" location="C:/gwt-windows-1.6.4" />
 
   <path id="project.class.path">
     <pathelement location="war/WEB-INF/classes"/>
@@ -39,7 +39,7 @@
       <!-- add jvmarg -Xss16M or similar if you see a StackOverflowError -->
       <jvmarg value="-Xmx256M"/>
       <!-- Additional arguments like -style PRETTY or -logLevel DEBUG -->
-      <arg value="com.reveregroup.client.Spiral"/>
+      <arg value="com.reveregroup.carousel.Spiral"/>
     </java>
   </target>
 
@@ -53,7 +53,7 @@
       <arg value="-startupUrl"/>
       <arg value="Spiral.html"/>
       <!-- Additional arguments like -style PRETTY or -logLevel DEBUG -->
-      <arg value="com.reveregroup.client.Spiral"/>
+      <arg value="com.reveregroup.carousel.Spiral"/>
     </java>
   </target>
 
