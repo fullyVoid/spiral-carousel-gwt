@@ -30,7 +30,7 @@ public class CarouselImage extends Image{
 		super.setUrl(url);
 	}
 	
-	public void sizeToBounds(int maxHeight, int maxWidth) {
+	public void sizeToBounds(int maxWidth, int maxHeight) {
 		if (originalWidth == 0) {
 			setSize("", "");
 			originalHeight = getHeight();
@@ -40,6 +40,10 @@ public class CarouselImage extends Image{
 				return;
 			}
 		}
+		
+//		setSize(Integer.toString(maxWidth), Integer.toString(maxHeight));
+//		if (2 == 1 + 1)
+//			return;
 		
 		double aspectRatio = originalHeight / originalWidth;
 		double containerAR = ((double)maxHeight) / ((double)maxWidth);
@@ -61,5 +65,15 @@ public class CarouselImage extends Image{
 		return originalWidth;
 	}
 	
+	public void setOpacity(double opacity) {
+		if (opacity > .995) {
+			getElement().getStyle().setProperty("opacity", "");
+			getElement().getStyle().setProperty("filter", "");
+		} else {
+			String s = Integer.toString((int) Math.round(opacity * 100));
+			getElement().getStyle().setProperty("opacity", (s.length() == 1 ? ".0" : ".") + s);
+			getElement().getStyle().setProperty("filter", "alpha(opacity=" + s + ")");
+		}
+	}
 	
 }

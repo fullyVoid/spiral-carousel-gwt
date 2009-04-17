@@ -7,7 +7,6 @@ import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.RootPanel;
@@ -25,6 +24,8 @@ public class Spiral implements EntryPoint {
 	Photo photo;
 	for(int i = 0; i < 25;i++){
 		photo = new Photo(GWT.getModuleBaseURL()+"sample"+(i+1+".jpg"));
+//	for(int i = 0; i < 10;i++){
+//		photo = new Photo(GWT.getModuleBaseURL()+"img"+(i+".bmp"));
 		photo.setCaption("This is photo caption number: " + i);
 		photo.setPhotoId(i);
 		photos.add(photo);
@@ -40,23 +41,20 @@ public class Spiral implements EntryPoint {
     Button clockwise = new Button("prev");
     clockwise.addClickHandler(new ClickHandler(){
 		public void onClick(ClickEvent event) {
-			// TODO Auto-generated method stub
 			carousel.prev();
 		}	
     });
     Button counterclockwise = new Button("next");
     counterclockwise.addClickHandler(new ClickHandler(){
     	public void onClick(ClickEvent event) {
-    		// TODO Auto-generated method stub
     		carousel.next();
     	}	
     });    
-    carousel.addPhotoClickHandler(new PhotoClickHandler(){
-		public void photoClicked(PhotoClickEvent event) {
-			// TODO Auto-generated method stub
-			
-		}
-    });
+//    carousel.addPhotoClickHandler(new PhotoClickHandler(){
+//		public void photoClicked(PhotoClickEvent event) {
+//			Window.alert(Integer.toString(event.getPhotoIndex()));
+//		}
+//    });
     RootPanel.get("carouselDiv").add(carousel);
     RootPanel.get().add(clockwise);
     RootPanel.get().add(counterclockwise);
