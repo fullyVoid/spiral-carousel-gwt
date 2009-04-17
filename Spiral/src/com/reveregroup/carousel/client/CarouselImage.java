@@ -1,49 +1,44 @@
 package com.reveregroup.carousel.client;
 
-import com.google.gwt.event.dom.client.LoadEvent;
-import com.google.gwt.event.dom.client.LoadHandler;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.google.gwt.user.client.ui.Image;
 
 public class CarouselImage extends Image{
 	private int originalHeight = 0;
 	private int originalWidth = 0;
-	public CarouselImage(){
-		super();
-		addLoadHandler(new LoadHandler(){
-			public void onLoad(LoadEvent event) {
-				// TODO Auto-generated method stub
-				setSize("", "");
-				String oldDisplay = getElement().getStyle().getProperty("display");
-				getElement().getStyle().setProperty("display", "");
-				originalHeight = getHeight();
-				originalWidth = getWidth();
-				getElement().getStyle().setProperty("display", oldDisplay);
-			}
-		});
-	}
+	
+	private static Map<String, int[]> sizeCache = new HashMap<String, int[]>();
 	
 	@Override
 	public void setUrl(String url) {
-		// TODO Auto-generated method stub
-		originalHeight = 0;
-		originalWidth = 0;
+		int[] dimension = sizeCache.get(url);
+		if (dimension == null) {
+			originalWidth = 0;
+			originalHeight = 0;
+		} else {
+			originalWidth = dimension[0];
+			originalHeight = dimension[1];
+		}
 		super.setUrl(url);
 	}
 	
 	public void sizeToBounds(int maxWidth, int maxHeight) {
 		if (originalWidth == 0) {
 			setSize("", "");
-			originalHeight = getHeight();
 			originalWidth = getWidth();
-			if (originalWidth == 0) {
+			originalHeight = getHeight();
+			if (originalWidth != 0) {
+				int[] dimension = new int[2];
+				dimension[0] = originalWidth;
+				dimension[1] = originalHeight;
+				sizeCache.put(getUrl(), dimension);
+			} else {
 				setSize(Integer.toString(maxWidth), Integer.toString(maxHeight));
 				return;
 			}
 		}
-		
-//		setSize(Integer.toString(maxWidth), Integer.toString(maxHeight));
-//		if (2 == 1 + 1)
-//			return;
 		
 		double aspectRatio = originalHeight / originalWidth;
 		double containerAR = ((double)maxHeight) / ((double)maxWidth);
