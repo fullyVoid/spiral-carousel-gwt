@@ -36,7 +36,6 @@ public class Spiral implements EntryPoint {
     //custom panel that extends panel implements photoId setter
     //inside carousel call tray.set photoID
     //
-    MouseTracker mouseTracker = new MouseTracker(carousel);
     carousel.getElement().getStyle().setProperty("backgroundColor", "silver");
     Button clockwise = new Button("prev");
     clockwise.addClickHandler(new ClickHandler(){
@@ -52,7 +51,7 @@ public class Spiral implements EntryPoint {
     		carousel.next();
     	}	
     });    
-    carousel.addPhotoClickedHandler(new PhotoClickHandler(){
+    carousel.addPhotoClickHandler(new PhotoClickHandler(){
 		public void photoClicked(PhotoClickEvent event) {
 			// TODO Auto-generated method stub
 			

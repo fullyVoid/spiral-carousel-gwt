@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.LoadEvent;
+import com.google.gwt.event.dom.client.LoadHandler;
 import com.google.gwt.event.dom.client.MouseDownEvent;
 import com.google.gwt.event.dom.client.MouseDownHandler;
 import com.google.gwt.event.dom.client.MouseMoveEvent;
@@ -15,16 +17,14 @@ import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
-import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.DockPanel.DockLayoutConstant;
 import com.reveregroup.carousel.client.events.PhotoClickEvent;
 import com.reveregroup.carousel.client.events.PhotoClickHandler;
-import com.reveregroup.carousel.client.events.PhotoFocusEvent;
 import com.reveregroup.carousel.client.events.PhotoFocusHandler;
 import com.reveregroup.carousel.client.events.PhotoToFrontEvent;
 import com.reveregroup.carousel.client.events.PhotoToFrontHandler;
+import com.reveregroup.carousel.client.events.PhotoUnfocusHandler;
 
 public class Carousel extends Composite {
 	private List<Photo> photos;
@@ -41,15 +41,16 @@ public class Carousel extends Composite {
 	
 	private int currentPhotoIndex = 0; //the photo that is currently in front
 	
-	private int photoIndex = 0; //the current offset in the photo list
+	private int photoOffset = 0; //the current offset in the photo list
 	
 	private int carouselSize = 8;
 	
 	private int preLoadSize = 3;
 	
-	private boolean focused;
+	private FocusBehavior focusBehavior;
 	
 	public Carousel() {
+		//Set up UI structure
 		carouselDock = new DockPanel();
 		carouselDock.setSize("800", "400");		
 		imagePanel = new AbsolutePanel();
@@ -61,6 +62,8 @@ public class Carousel extends Composite {
 		carouselDock.setCellHeight(imagePanel, "100%");
 		carouselDock.setCellHorizontalAlignment(caption, DockPanel.ALIGN_CENTER);
 		Utils.preventSelection(carouselDock.getElement());
+		
+		//Set up images
 		images = new CarouselImage[this.carouselSize+(this.preLoadSize*2)];
 		for (int i = 0; i < images.length; i++) {
 			images[i] = new CarouselImage();
@@ -72,7 +75,7 @@ public class Carousel extends Composite {
 					Image img = (Image) event.getSource();					
 					for (int i = 0; i < images.length; i++) {						
 						if (images[i] == img) {
-							int pIndex = i-preLoadSize + photoIndex;
+							int pIndex = i-preLoadSize + photoOffset;
 							pIndex = Utils.modulus(pIndex, photos.size());
 							
 							//fire off photo clicked event
@@ -80,88 +83,68 @@ public class Carousel extends Composite {
 							pcEvent.setPhotoIndex(pIndex);
 							pcEvent.setPhoto(photos.get(pIndex));
 							fireEvent(pcEvent);												
-							if(pIndex == getCurrentPhotoIndex()){
-								//image is in front create panel to show
-								focused = !focused;
-								if(focused){
-									PhotoFocusEvent focusevent= new PhotoFocusEvent();
-									focusevent.setPhoto(photos.get(pIndex));
-									focusevent.setPhotoIndex(getCurrentPhotoIndex());
-									fireEvent(event);
-								}
-								placeImages();
-							}else{
-								rotateTo(pIndex);
-							}
 							break;
 						}
+					}
+				}
+			});
+			images[i].addLoadHandler(new LoadHandler() {
+				public void onLoad(LoadEvent event) {
+					if (!"none".equals( ((CarouselImage)event.getSource()).getElement().getStyle().getProperty("display") )) {
+						placeImages();
 					}
 				}
 			});
 			imagePanel.add(images[i]);
 		}
 		this.initWidget(carouselDock);
+		
+		//Sync caption with front-most photo.
 		addPhotoToFrontHandler(new PhotoToFrontHandler(){
 			public void photoToFront(PhotoToFrontEvent event) {
 				caption.setText(event.getPhoto().getCaption());
 			}
 		});
+		
+		//Rotate when mouse is dragged
+		new MouseBehavior(this);
+		//Focus when current photo clicked
+		new FocusBehavior(this);
 	}
 
 	private void placeImages() {
+		// Places images in the correct spots
 		int offsetWidth = imagePanel.getOffsetWidth();
 		int offsetHeight = imagePanel.getOffsetHeight();
-		
-		// Places images in the correct spots
 		double degreeOffset = 0.0;
 		double rotationDecimal = currentRotation - Math.floor(currentRotation);
-		int frontImage = 0;
-		if(rotationDecimal < .5){
-			frontImage = 4;
-		}else{
-			frontImage = 5;
-		}
-		
 		int wholeMovements = (int)Math.floor(currentRotation);
 		this.setPhotoIndex(wholeMovements);		
 		degreeOffset = -(rotationDecimal * ((Math.PI) / 4));
 		//degreeOffset = direction * (((Math.PI / 4) / totalRotations) * rotationIncrement);
 		for (int i = 0; i < this.carouselSize; i++) {
 			CarouselImage image = images[i+preLoadSize];
-			if(i == frontImage && focused){
-				
-				if(image.getOriginalHeight() > offsetHeight || image.getOriginalWidth() > offsetWidth){
-					image.sizeToBounds(offsetHeight, offsetWidth);
-				} else {
-					image.setSize("", "");
-				}
-				image.getElement().getStyle().setProperty("zIndex", "21");
-				int xcoord = (int)(offsetWidth - images[i+preLoadSize].getWidth())/2;
-				int ycoord = (int)(offsetHeight - images[i+preLoadSize].getHeight())/2;
-				imagePanel.setWidgetPosition(image, xcoord, ycoord);		
-			} else {
-				double finalDegree = ((i * Math.PI) / 4) + degreeOffset;
-				double scale = 0.0;
-				double x = Math.sin(finalDegree);
-				double y = -Math.cos(finalDegree);
-				scale = Math.pow(2, y);
-				int zindex = (int) (y * 10);
-				zindex += 10;		
-				images[i+preLoadSize].getElement().getStyle().setProperty("zIndex",
-						Integer.toString(zindex));
-				image.sizeToBounds((int)(scale * 80), (int)(scale * 80));
-				
-				int xcoord = (int) (x * 300) + (offsetWidth - image.getWidth()) / 2;
-				int ycoord = (int) (y * 75) + (offsetHeight - image.getHeight()) / 2 - 40;
-				imagePanel.setWidgetPosition(image, xcoord, ycoord);
-			}
+			double finalDegree = ((i * Math.PI) / 4) + degreeOffset;
+			double scale = 0.0;
+			double x = Math.sin(finalDegree);
+			double y = -Math.cos(finalDegree);
+			scale = Math.pow(2, y);
+			int zindex = (int) (y * 10);
+			zindex += 10;		
+			images[i+preLoadSize].getElement().getStyle().setProperty("zIndex",
+					Integer.toString(zindex));
+			image.sizeToBounds((int)(scale * 80), (int)(scale * 80));
+			
+			int xcoord = (int) (x * 300) + (offsetWidth - image.getWidth()) / 2;
+			int ycoord = (int) (y * 75) + (offsetHeight - image.getHeight()) / 2 - 40;
+			imagePanel.setWidgetPosition(image, xcoord, ycoord);
 		}
 	}
 
-	public void setPhotos(List<Photo> photos){
+	public void setPhotos(List<Photo> photos) {
 		this.photos = photos;
 		for (int i = 0; i < images.length; i++) {
-			int pIndex = photoIndex - preLoadSize + i;
+			int pIndex = photoOffset - preLoadSize + i;
 			pIndex = Utils.modulus(pIndex,photos.size());			
 			images[i].setUrl(photos.get(pIndex).getUrl());
 		}
@@ -172,10 +155,10 @@ public class Carousel extends Composite {
 	}
 
 	private void setPhotoIndex(int photoIndex) {
-		if(this.photoIndex == photoIndex){
+		if(this.photoOffset == photoIndex){
 			return;
 		}else{			
-			int shiftOffset = photoIndex - this.photoIndex;
+			int shiftOffset = photoIndex - this.photoOffset;
 			if(shiftOffset < -(photos.size()/2)){
 				shiftOffset += photos.size();
 			}else if(shiftOffset > (photos.size()/2)){
@@ -224,7 +207,7 @@ public class Carousel extends Composite {
 			for(int i = 0; i < carouselSize; i++){
 				images[i+preLoadSize].getElement().getStyle().setProperty("display", "");
 			}
-			this.photoIndex = photoIndex;			
+			this.photoOffset = photoIndex;			
 		}
 	}
 	
@@ -268,14 +251,7 @@ public class Carousel extends Composite {
 			PhotoToFrontEvent event = new PhotoToFrontEvent();
 			event.setPhoto(photos.get(getCurrentPhotoIndex()));
 			event.setPhotoIndex(getCurrentPhotoIndex());
-			//caption.setText(photos.get(getCurrentPhotoIndex()).getCaption());
 			fireEvent(event);
-			if(focused){
-				PhotoFocusEvent focusedEvent = new PhotoFocusEvent();
-				event.setPhoto(photos.get(getCurrentPhotoIndex()));
-				event.setPhotoIndex(getCurrentPhotoIndex());
-				fireEvent(focusedEvent);
-			}
 		}
 		placeImages();
 	}
@@ -295,16 +271,18 @@ public class Carousel extends Composite {
 	}
 	
 	public void prev() {
-		rotateTo(Math.round(currentRotation) - 1.0 + 4.0);
+		rotateTo(getCurrentPhotoIndex() - 1.0);
 	}
 
 	public void next() {
-		rotateTo(Math.round(currentRotation) + 1.0 + 4.0);
+		rotateTo(getCurrentPhotoIndex() + 1.0);
 	}	
 	
-	public HandlerRegistration addPhotoFocusHandler(PhotoFocusHandler handler){
-		return addHandler(handler, PhotoFocusEvent.getType());
+	public int getCurrentPhotoIndex(){
+		return currentPhotoIndex;
 	}
+	
+	
 	public HandlerRegistration addPhotoToFrontHandler(PhotoToFrontHandler handler){
 		return addHandler(handler,PhotoToFrontEvent.getType());
 	}
@@ -325,10 +303,19 @@ public class Carousel extends Composite {
 		return addDomHandler(handler, MouseUpEvent.getType());
 	}
 	
-	public int getCurrentPhotoIndex(){
-		return currentPhotoIndex;
-	}
-	public HandlerRegistration addPhotoClickedHandler(PhotoClickHandler handler){
+	public HandlerRegistration addPhotoClickHandler(PhotoClickHandler handler) {
 		return addHandler(handler, PhotoClickEvent.getType());
+	}
+	
+	public HandlerRegistration addPhotoFocusHandler(PhotoFocusHandler handler) {
+		if (focusBehavior == null)
+			return null;
+		return focusBehavior.addPhotoFocusHandler(handler);
+	}
+	
+	public HandlerRegistration addPhotoUnfocusHandler(PhotoUnfocusHandler handler) {
+		if (focusBehavior == null)
+			return null;
+		return focusBehavior.addPhotoUnfocusHandler(handler);
 	}
 }
