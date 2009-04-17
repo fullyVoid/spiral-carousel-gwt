@@ -17,10 +17,10 @@ import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
-import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.RootPanel;
+import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.client.ui.DockPanel.DockLayoutConstant;
 import com.reveregroup.carousel.client.events.PhotoClickEvent;
 import com.reveregroup.carousel.client.events.PhotoClickHandler;
 import com.reveregroup.carousel.client.events.PhotoFocusHandler;
@@ -46,6 +46,8 @@ public class Carousel extends Composite {
 	private int carouselSize = 9;
 	
 	private int preLoadSize = 3;
+	
+	private MouseBehavior mouseBehavior;
 	
 	private FocusBehavior focusBehavior;
 	
@@ -111,9 +113,14 @@ public class Carousel extends Composite {
 		});
 		
 		//Rotate when mouse is dragged
-		new MouseBehavior(this);
+		mouseBehavior = new MouseBehavior(this);
 		//Focus when current photo clicked
-		new FocusBehavior(this);
+		focusBehavior = new FocusBehavior(this);
+	}
+	
+	public void setFocusDecoratorWidget(Widget widget, DockLayoutConstant position) {
+		if (focusBehavior != null)
+			focusBehavior.setFocusDecoratorWidget(widget, position);
 	}
 
 	private void placeImages() {
