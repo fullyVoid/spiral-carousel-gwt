@@ -11,14 +11,5 @@
   </welcome-file-list>
   
   <!-- Servlets -->
-  <servlet>
-    <servlet-name>greetServlet</servlet-name>
-    <servlet-class>com.reveregroup.client.server.GreetingServiceImpl</servlet-class>
-  </servlet>
-  
-  <servlet-mapping>
-    <servlet-name>greetServlet</servlet-name>
-    <url-pattern>/spiral/greet</url-pattern>
-  </servlet-mapping>
 
 </web-app>
