@@ -52,7 +52,6 @@ public class Carousel extends Composite {
 	public Carousel() {
 		//Set up UI structure
 		carouselDock = new DockPanel();
-		carouselDock.setSize("800", "300");		
 		imagePanel = new AbsolutePanel();
 		imagePanel.setSize("100%", "100%");
 		caption = new Label();
@@ -62,11 +61,16 @@ public class Carousel extends Composite {
 		carouselDock.setCellHeight(imagePanel, "100%");
 		carouselDock.setCellHorizontalAlignment(caption, DockPanel.ALIGN_CENTER);
 		Utils.preventSelection(carouselDock.getElement());
+		imagePanel.getElement().getStyle().setProperty("overflow", "hidden");
+		
+		carouselDock.setStyleName("photoCarousel");
+		caption.setStyleName("photoCarouselCaption");
 		
 		//Set up images
 		images = new CarouselImage[this.carouselSize+(this.preLoadSize*2)];
 		for (int i = 0; i < images.length; i++) {
 			images[i] = new CarouselImage();
+			images[i].setSize("1", "1");
 			Utils.preventDrag(images[i]);
 			Utils.preventSelection(images[i].getElement());
 			images[i].getElement().getStyle().setProperty("display", "none");
@@ -115,7 +119,7 @@ public class Carousel extends Composite {
 	private void placeImages() {
 		// Places images in the correct spots
 		int offsetWidth = imagePanel.getOffsetWidth();
-		int offsetHeight = imagePanel.getOffsetHeight();
+		int offsetHeight = imagePanel.getElement().getClientHeight();
 		
 		double imgHeight = offsetHeight * 3.0 / 8.0;
 		double imgWidth = imgHeight * 1.2;
@@ -150,16 +154,12 @@ public class Carousel extends Composite {
 			} else {
 				image.setOpacity(1.0);
 			}
-//			if (y < -.5) {
-//				image.setOpacity((y + 1.0) * 2.0);
-//			} else {
-//				image.setOpacity(1.0);
-//			}
 		}
 	}
 
 	public void setPhotos(List<Photo> photos) {
 		this.photos = photos;
+		currentPhotoIndex = Utils.modulus(currentPhotoIndex, photos.size());
 		for (int i = 0; i < images.length; i++) {
 			int pIndex = i - preLoadSize - 4 + currentPhotoIndex;
 			pIndex = Utils.modulus(pIndex,photos.size());			
@@ -169,6 +169,10 @@ public class Carousel extends Composite {
 			images[i + preLoadSize].getElement().getStyle().setProperty("display", "");
 		}
 		placeImages();
+		PhotoToFrontEvent evt = new PhotoToFrontEvent();
+		evt.setPhotoIndex(currentPhotoIndex);
+		evt.setPhoto(photos.get(currentPhotoIndex));
+		fireEvent(evt);
 	}
 
 	private void setCurrentPhotoIndex(int photoIndex) {
