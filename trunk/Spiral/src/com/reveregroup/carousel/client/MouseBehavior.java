@@ -32,7 +32,7 @@ public class MouseBehavior {
 			public void onMouseMove(MouseMoveEvent event) {
 				if (mouseDown == true) {
 					int distance = event.getX() - lastXValue;
-					target.setVelocity(distance / 50.0);
+					target.setVelocity(distance / -50.0);
 					lastXValue = event.getX();
 				}
 			}

@@ -17,8 +17,10 @@ import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
+import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.RootPanel;
 import com.reveregroup.carousel.client.events.PhotoClickEvent;
 import com.reveregroup.carousel.client.events.PhotoClickHandler;
 import com.reveregroup.carousel.client.events.PhotoFocusHandler;
@@ -41,9 +43,7 @@ public class Carousel extends Composite {
 	
 	private int currentPhotoIndex = 0; //the photo that is currently in front
 	
-	private int photoOffset = 0; //the current offset in the photo list
-	
-	private int carouselSize = 8;
+	private int carouselSize = 9;
 	
 	private int preLoadSize = 3;
 	
@@ -52,7 +52,7 @@ public class Carousel extends Composite {
 	public Carousel() {
 		//Set up UI structure
 		carouselDock = new DockPanel();
-		carouselDock.setSize("800", "400");		
+		carouselDock.setSize("800", "300");		
 		imagePanel = new AbsolutePanel();
 		imagePanel.setSize("100%", "100%");
 		caption = new Label();
@@ -73,9 +73,9 @@ public class Carousel extends Composite {
 			images[i].addClickHandler(new ClickHandler() {
 				public void onClick(ClickEvent event) {
 					Image img = (Image) event.getSource();					
-					for (int i = 0; i < images.length; i++) {						
-						if (images[i] == img) {
-							int pIndex = i-preLoadSize + photoOffset;
+					for (int i = 0; i < carouselSize; i++) {						
+						if (images[i+preLoadSize] == img) {
+							int pIndex = i - 4 + currentPhotoIndex;
 							pIndex = Utils.modulus(pIndex, photos.size());
 							
 							//fire off photo clicked event
@@ -116,49 +116,69 @@ public class Carousel extends Composite {
 		// Places images in the correct spots
 		int offsetWidth = imagePanel.getOffsetWidth();
 		int offsetHeight = imagePanel.getOffsetHeight();
+		
+		double imgHeight = offsetHeight * 3.0 / 8.0;
+		double imgWidth = imgHeight * 1.2;
+		double xRadius = (offsetWidth - imgWidth) / 2.0;
+		double yRadius = imgHeight / 3.0;
+		double spiralSpread = yRadius * .5;
+		
+		
 		double degreeOffset = 0.0;
-		double rotationDecimal = currentRotation - Math.floor(currentRotation);
-		int wholeMovements = (int)Math.floor(currentRotation);
-		this.setPhotoIndex(wholeMovements);		
+		double rotationDecimal = currentRotation - Math.round(currentRotation);
 		degreeOffset = -(rotationDecimal * ((Math.PI) / 4));
-		//degreeOffset = direction * (((Math.PI / 4) / totalRotations) * rotationIncrement);
-		for (int i = 0; i < this.carouselSize; i++) {
+		for (int i = 0; i < carouselSize; i++) {
 			CarouselImage image = images[i+preLoadSize];
 			double finalDegree = ((i * Math.PI) / 4) + degreeOffset;
 			double scale = 0.0;
-			double x = Math.sin(finalDegree);
+			double x = -Math.sin(finalDegree);
 			double y = -Math.cos(finalDegree);
 			scale = Math.pow(2, y);
 			int zindex = (int) (y * 10);
 			zindex += 10;		
 			images[i+preLoadSize].getElement().getStyle().setProperty("zIndex",
 					Integer.toString(zindex));
-			image.sizeToBounds((int)(scale * 80), (int)(scale * 80));
+			image.sizeToBounds((int)(scale * imgWidth), (int)(scale * imgHeight));
 			
-			int xcoord = (int) (x * 300) + (offsetWidth - image.getWidth()) / 2;
-			int ycoord = (int) (y * 75) + (offsetHeight - image.getHeight()) / 2 - 40;
+			int xcoord = (int) Math.round( (x * xRadius) + (offsetWidth - image.getWidth()) / 2.0 );
+			int ycoord = (int) Math.round( (y * yRadius) + offsetHeight - imgHeight - yRadius - image.getHeight() / 2.0 - Math.round(spiralSpread * (i - 4 - rotationDecimal)) );
 			imagePanel.setWidgetPosition(image, xcoord, ycoord);
+			if (i == 0) {
+				image.setOpacity(.5 - rotationDecimal);
+			} else if (i == carouselSize - 1) {
+				image.setOpacity(.5 + rotationDecimal);
+			} else {
+				image.setOpacity(1.0);
+			}
+//			if (y < -.5) {
+//				image.setOpacity((y + 1.0) * 2.0);
+//			} else {
+//				image.setOpacity(1.0);
+//			}
 		}
 	}
 
 	public void setPhotos(List<Photo> photos) {
 		this.photos = photos;
 		for (int i = 0; i < images.length; i++) {
-			int pIndex = photoOffset - preLoadSize + i;
+			int pIndex = i - preLoadSize - 4 + currentPhotoIndex;
 			pIndex = Utils.modulus(pIndex,photos.size());			
 			images[i].setUrl(photos.get(pIndex).getUrl());
 		}
 		for(int i = 0;i < carouselSize;i++){
-			images[i+preLoadSize].getElement().getStyle().setProperty("display", "");
+			images[i + preLoadSize].getElement().getStyle().setProperty("display", "");
 		}
 		placeImages();
 	}
 
-	private void setPhotoIndex(int photoIndex) {
-		if(this.photoOffset == photoIndex){
+	private void setCurrentPhotoIndex(int photoIndex) {
+		if(this.currentPhotoIndex == photoIndex)
+			return;
+		photoIndex = Utils.modulus(photoIndex, photos.size());
+		if(this.currentPhotoIndex == photoIndex){
 			return;
 		}else{			
-			int shiftOffset = photoIndex - this.photoOffset;
+			int shiftOffset = photoIndex - this.currentPhotoIndex;
 			if(shiftOffset < -(photos.size()/2)){
 				shiftOffset += photos.size();
 			}else if(shiftOffset > (photos.size()/2)){
@@ -176,7 +196,7 @@ public class Carousel extends Composite {
 				}
 				//update from large array			
 				for(int k = 0; k < temps.length;k++){
-					int pIndex = photoIndex + carouselSize +  preLoadSize - shiftOffset + k;
+					int pIndex = photoIndex - 4 + carouselSize + preLoadSize - shiftOffset + k;
 					pIndex = Utils.modulus(pIndex, photos.size());
 					images[k+images.length - shiftOffset] = temps[k];
 					temps[k].setUrl(photos.get(pIndex).getUrl());
@@ -193,7 +213,7 @@ public class Carousel extends Composite {
 				}
 				//update from large array
 				for(int k = 0; k < temps.length;k++){
-					int pIndex = photoIndex - preLoadSize + k;
+					int pIndex = photoIndex - 4 - preLoadSize + k;
 					pIndex = Utils.modulus(pIndex, photos.size());
 					images[k] = temps[k];
 					temps[k].setUrl(photos.get(pIndex).getUrl());
@@ -207,7 +227,7 @@ public class Carousel extends Composite {
 			for(int i = 0; i < carouselSize; i++){
 				images[i+preLoadSize].getElement().getStyle().setProperty("display", "");
 			}
-			this.photoOffset = photoIndex;			
+			this.currentPhotoIndex = photoIndex;			
 		}
 	}
 	
@@ -243,10 +263,11 @@ public class Carousel extends Composite {
 	public double getCurrentRotation() {
 		return currentRotation;
 	}
+	
 	private void setCurrentRotation(double value) {
 		int pi = getCurrentPhotoIndex();
 		currentRotation = Utils.modulus(value, photos.size());
-		currentPhotoIndex = Utils.modulus((int)Math.round(currentRotation + 4.0),photos.size());
+		setCurrentPhotoIndex((int)Math.round(currentRotation));
 		if (pi != getCurrentPhotoIndex()) {
 			PhotoToFrontEvent event = new PhotoToFrontEvent();
 			event.setPhoto(photos.get(getCurrentPhotoIndex()));
@@ -257,7 +278,7 @@ public class Carousel extends Composite {
 	}
 	
 	public void rotateTo(double position) {
-		double distance = Utils.modulus(position - 4, photos.size()) - currentRotation;
+		double distance = Utils.modulus(position, photos.size()) - currentRotation;
 		if (distance > photos.size() / 2) {
 			distance -= photos.size();
 		} else if (distance < photos.size() / -2) {
