@@ -3,6 +3,8 @@ package com.reveregroup.carousel.client;
 import com.google.gwt.event.dom.client.FocusEvent;
 import com.google.gwt.event.shared.HandlerManager;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.client.ui.DockPanel.DockLayoutConstant;
 import com.reveregroup.carousel.client.events.PhotoClickEvent;
 import com.reveregroup.carousel.client.events.PhotoClickHandler;
 import com.reveregroup.carousel.client.events.PhotoFocusEvent;
@@ -13,6 +15,7 @@ import com.reveregroup.carousel.client.events.PhotoUnfocusHandler;
 public class FocusBehavior {
 	protected Carousel target;
 	protected HandlerManager handlerManager;
+	protected Widget focusDecoratorWidget = null;
 	
 	public FocusBehavior(Carousel carousel) {
 		this.target = carousel;
@@ -36,5 +39,9 @@ public class FocusBehavior {
 	
 	public HandlerRegistration addPhotoUnfocusHandler(PhotoUnfocusHandler handler) {
 		return handlerManager.addHandler(PhotoUnfocusEvent.getType(), handler);
+	}
+	
+	public void setFocusDecoratorWidget(Widget widget, DockLayoutConstant position) {
+		focusDecoratorWidget = widget;
 	}
 }
