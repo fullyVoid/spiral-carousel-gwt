@@ -13,6 +13,7 @@ public class CarouselImage extends Image{
 	
 	@Override
 	public void setUrl(String url) {
+		super.setUrl(url);
 		int[] dimension = sizeCache.get(url);
 		if (dimension == null) {
 			originalWidth = 0;
@@ -21,7 +22,6 @@ public class CarouselImage extends Image{
 			originalWidth = dimension[0];
 			originalHeight = dimension[1];
 		}
-		super.setUrl(url);
 	}
 	
 	public void sizeToBounds(int maxWidth, int maxHeight) {

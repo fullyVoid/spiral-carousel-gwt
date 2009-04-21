@@ -54,9 +54,12 @@ public class Utils {
 	}
 	
 	public static int modulus(int a, int b){
-		if(a < 0){
-			return ((a % b) + b);
-		}else if (a == 0){
+		if(a < 0) {
+			a = a % b;
+			if (a < 0)
+				a += b;
+			return a;
+		} else if (a == 0) {
 			return 0;
 		}
 		return a % b;
