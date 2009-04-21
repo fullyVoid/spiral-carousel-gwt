@@ -14,3 +14,25 @@
 	font-size: 11px;
 	padding: 2px;
 }
+
+.lightbox{
+	display:block;
+	background-color: black;
+	position:fixed;
+	opacity:.8;
+	top: 0;
+	filter: alpha(opacity=80);
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+.lightboxIE6{
+	display:block;
+	background-color: black;
+	filter: alpha(opacity=80);
+	left: 0;
+	width: 100%;
+	height: 100%;
+	position: absolute !important;
+    top: expression( (ignoreMe = document.body.scrollTop)+ 'px' ) !important;
+}
