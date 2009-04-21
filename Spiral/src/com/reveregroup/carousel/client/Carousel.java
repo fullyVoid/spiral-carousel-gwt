@@ -2,6 +2,7 @@ package com.reveregroup.carousel.client;
 
 import java.util.List;
 
+import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.LoadEvent;
@@ -13,12 +14,15 @@ import com.google.gwt.event.dom.client.MouseMoveHandler;
 import com.google.gwt.event.dom.client.MouseUpEvent;
 import com.google.gwt.event.dom.client.MouseUpHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.user.client.ui.DockPanel.DockLayoutConstant;
 import com.reveregroup.carousel.client.events.PhotoClickEvent;
@@ -53,6 +57,15 @@ public class Carousel extends Composite {
 	
 	public Carousel() {
 		//Set up UI structure
+//		RootPanel.get("lightbox").getElement().getStyle().setProperty("background", "");
+		Element lightbox = (Element)DOM.getElementById("lightbox");		
+//		lightbox.getStyle().setProperty("background", "white");
+//		lightbox.getStyle().setProperty("zIndex", "-50");
+		lightbox.getStyle().setProperty("display", "none");
+//		this.getParent().getElement().getStyle().setProperty("background", "");
+		if(getUserAgent().contains("msie")){			
+			lightbox.setClassName("lightboxIE6");
+		}
 		carouselDock = new DockPanel();
 		imagePanel = new AbsolutePanel();
 		imagePanel.setSize("100%", "100%");
@@ -64,7 +77,6 @@ public class Carousel extends Composite {
 		carouselDock.setCellHorizontalAlignment(caption, DockPanel.ALIGN_CENTER);
 		Utils.preventSelection(carouselDock.getElement());
 		imagePanel.getElement().getStyle().setProperty("overflow", "hidden");
-		
 		carouselDock.setStyleName("photoCarousel");
 		caption.setStyleName("photoCarouselCaption");
 		
@@ -82,9 +94,8 @@ public class Carousel extends Composite {
 					for (int i = 0; i < carouselSize; i++) {						
 						if (images[i+preLoadSize] == img) {
 							int pIndex = i - 4 + currentPhotoIndex;
-							pIndex = Utils.modulus(pIndex, photos.size());
-							
-							//fire off photo clicked event
+							pIndex = Utils.modulus(pIndex, photos.size());							
+							//fire off photo clicked event														
 							PhotoClickEvent pcEvent = new PhotoClickEvent();
 							pcEvent.setPhotoIndex(pIndex);
 							pcEvent.setPhoto(photos.get(pIndex));
@@ -350,4 +361,7 @@ public class Carousel extends Composite {
 			return null;
 		return focusBehavior.addPhotoUnfocusHandler(handler);
 	}
+	public static native String getUserAgent() /*-{
+	return navigator.userAgent.toLowerCase();
+	}-*/;
 }
