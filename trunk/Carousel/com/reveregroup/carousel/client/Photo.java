@@ -7,6 +7,9 @@ public class Photo{
 	private int width;
 	private int photoId;
 	
+	public Photo() {
+	}
+	
 	public Photo(String url){
 		this.url = url;
 	}

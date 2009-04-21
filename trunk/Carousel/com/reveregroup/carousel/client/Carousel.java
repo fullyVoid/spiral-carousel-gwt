@@ -2,7 +2,6 @@ package com.reveregroup.carousel.client;
 
 import java.util.List;
 
-import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.LoadEvent;
@@ -14,15 +13,12 @@ import com.google.gwt.event.dom.client.MouseMoveHandler;
 import com.google.gwt.event.dom.client.MouseUpEvent;
 import com.google.gwt.event.dom.client.MouseUpHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
-import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.user.client.ui.DockPanel.DockLayoutConstant;
 import com.reveregroup.carousel.client.events.PhotoClickEvent;
@@ -51,21 +47,14 @@ public class Carousel extends Composite {
 	
 	private int preLoadSize = 3;
 	
+	private boolean mouseMoved = false;
+	
 	private MouseBehavior mouseBehavior;
 	
 	private FocusBehavior focusBehavior;
 	
 	public Carousel() {
 		//Set up UI structure
-//		RootPanel.get("lightbox").getElement().getStyle().setProperty("background", "");
-		Element lightbox = (Element)DOM.getElementById("lightbox");		
-//		lightbox.getStyle().setProperty("background", "white");
-//		lightbox.getStyle().setProperty("zIndex", "-50");
-		lightbox.getStyle().setProperty("display", "none");
-//		this.getParent().getElement().getStyle().setProperty("background", "");
-		if(getUserAgent().contains("msie")){			
-			lightbox.setClassName("lightboxIE6");
-		}
 		carouselDock = new DockPanel();
 		imagePanel = new AbsolutePanel();
 		imagePanel.setSize("100%", "100%");
@@ -90,6 +79,8 @@ public class Carousel extends Composite {
 			images[i].getElement().getStyle().setProperty("display", "none");
 			images[i].addClickHandler(new ClickHandler() {
 				public void onClick(ClickEvent event) {
+					if (mouseMoved)
+						return; //make sure a photo click is not registered when the mouse is dragged.
 					Image img = (Image) event.getSource();					
 					for (int i = 0; i < carouselSize; i++) {						
 						if (images[i+preLoadSize] == img) {
@@ -127,6 +118,18 @@ public class Carousel extends Composite {
 		mouseBehavior = new MouseBehavior(this);
 		//Focus when current photo clicked
 		focusBehavior = new FocusBehavior(this);
+		
+		//These are used to help make sure a photo click is not registered when the mouse is dragged.
+		addMouseDownHandler(new MouseDownHandler() {
+			public void onMouseDown(MouseDownEvent event) {
+				mouseMoved = false;
+			}
+		});
+		addMouseMoveHandler(new MouseMoveHandler() {
+			public void onMouseMove(MouseMoveEvent event) {
+				mouseMoved = true;
+			}
+		});
 	}
 	
 	public void setFocusDecoratorWidget(Widget widget, DockLayoutConstant position) {
@@ -180,7 +183,7 @@ public class Carousel extends Composite {
 		currentPhotoIndex = Utils.modulus(currentPhotoIndex, photos.size());
 		for (int i = 0; i < images.length; i++) {
 			int pIndex = i - preLoadSize - 4 + currentPhotoIndex;
-			pIndex = Utils.modulus(pIndex,photos.size());			
+			pIndex = Utils.modulus(pIndex, photos.size());			
 			images[i].setUrl(photos.get(pIndex).getUrl());
 		}
 		for(int i = 0;i < carouselSize;i++){

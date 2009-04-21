@@ -1,28 +1,17 @@
 package com.reveregroup.carousel.client;
 
 import com.google.gwt.dom.client.Element;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.FocusEvent;
 import com.google.gwt.event.logical.shared.CloseEvent;
 import com.google.gwt.event.logical.shared.CloseHandler;
 import com.google.gwt.event.shared.HandlerManager;
 import com.google.gwt.event.shared.HandlerRegistration;
-
 import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.ui.AbsolutePanel;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.DockPanel;
-import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.user.client.ui.VerticalPanel;
-
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.user.client.ui.DockPanel.DockLayoutConstant;
-
 import com.reveregroup.carousel.client.events.PhotoClickEvent;
 import com.reveregroup.carousel.client.events.PhotoClickHandler;
 import com.reveregroup.carousel.client.events.PhotoFocusEvent;
@@ -34,11 +23,14 @@ public class FocusBehavior {
 	protected Carousel target;
 	protected HandlerManager handlerManager;
 
+	protected Element lightbox;
 	protected PopupPanel popup;
-	protected Image testPanel;
+	protected DockPanel dockPanel = new DockPanel();
+	protected Image popupImage;
 
 	protected Widget focusDecoratorWidget = null;
 	
+	protected PhotoFocusEvent lastFocusEvent = null;
 
 	public FocusBehavior(Carousel carousel) {
 		this.target = carousel;
@@ -50,6 +42,7 @@ public class FocusBehavior {
 					PhotoFocusEvent evt = new PhotoFocusEvent();
 					evt.setPhoto(event.getPhoto());
 					evt.setPhotoIndex(event.getPhotoIndex());
+					lastFocusEvent = evt;
 					handlerManager.fireEvent(evt);
 				}
 			}
@@ -57,28 +50,35 @@ public class FocusBehavior {
 		
 		addPhotoFocusHandler(new PhotoFocusHandler() {
 			public void photoFocused(PhotoFocusEvent event) {
-				// TODO Auto-generated method stub
-			    DockPanel tray = new DockPanel();
-			    Element lightbox = (Element)DOM.getElementById("lightbox");		
-				lightbox.getStyle().setProperty("backgroundColor", "black");
-				lightbox.getStyle().setProperty("zIndex", "500");
+			    
+				if (popup == null) {
+					lightbox = DOM.createDiv();
+				    lightbox.setClassName("lightbox");
+				    if (getUserAgent().contains("msie")) {
+				    	lightbox.setClassName("lightbox lightboxIE");
+				    }
+				    lightbox.getStyle().setProperty("zIndex", "100");
+				    RootPanel.getBodyElement().appendChild(lightbox);
+				    popup = new PopupPanel(true,true);
+					popupImage = new Image();
+					dockPanel.add(popupImage, DockPanel.CENTER);
+				    popup.add(dockPanel);
+				    popup.getElement().getStyle().setProperty("zIndex", "150");
+					popup.addCloseHandler(new CloseHandler<PopupPanel>(){
+						public void onClose(CloseEvent<PopupPanel> event) {
+							popup.hide();
+							lightbox.getStyle().setProperty("display", "none");
+							PhotoUnfocusEvent evt = new PhotoUnfocusEvent();
+							evt.setPhotoIndex(lastFocusEvent.getPhotoIndex());
+							evt.setPhoto(lastFocusEvent.getPhoto());
+							handlerManager.fireEvent(evt);
+						}
+					});
+				}
+				
+				popupImage.setUrl(event.getPhoto().getUrl());
 				lightbox.getStyle().setProperty("display", "block");
-			    tray.getElement().getStyle().setProperty("zIndex", "150");
-			    popup = new PopupPanel(true,true);
-				Image eventImage = new Image(event.getPhoto().getUrl());
-			    tray.add(eventImage, DockPanel.CENTER);
-			    tray.add(focusDecoratorWidget, DockPanel.SOUTH);			  
-			    popup.getElement().getStyle().setProperty("zIndex", "550");
-			    popup.add(tray);			    
 				popup.center();
-				popup.addCloseHandler(new CloseHandler<PopupPanel>(){
-					public void onClose(CloseEvent<PopupPanel> event) {
-						// TODO Auto-generated method stub
-						Element lightbox = (Element)DOM.getElementById("lightbox");
-						lightbox.getStyle().setProperty("backgroundColor", "white");						
-						lightbox.getStyle().setProperty("zIndex", "-50");
-					}
-				});
 			}
 		});
 	}
@@ -92,9 +92,14 @@ public class FocusBehavior {
 	}
 	
 	public void setFocusDecoratorWidget(Widget widget, DockLayoutConstant position) {
+		if (focusDecoratorWidget != null && focusDecoratorWidget.getParent() == dockPanel) {
+			focusDecoratorWidget.removeFromParent();
+		}
 		focusDecoratorWidget = widget;
+		dockPanel.add(widget, position);
 	}
-	public static native String getUserAgent() /*-{
-	return navigator.userAgent.toLowerCase();
+	
+	private static native String getUserAgent() /*-{
+		return navigator.userAgent.toLowerCase();
 	}-*/;
 }
