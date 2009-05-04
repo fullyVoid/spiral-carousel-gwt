@@ -11,10 +11,12 @@ import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.EventListener;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextArea;
+import com.google.gwt.user.client.ui.ToggleButton;
 import com.reveregroup.carousel.client.events.PhotoFocusEvent;
 import com.reveregroup.carousel.client.events.PhotoFocusHandler;
 
@@ -31,7 +33,7 @@ public class Spiral implements EntryPoint {
 
 		carousel.addPhotoFocusHandler(new PhotoFocusHandler() {
 			public void photoFocused(PhotoFocusEvent event) {
-				myLabel.setText("Photo " + Integer.toString(event.getPhotoIndex()) + ": " + event.getPhoto().getCaption());
+				myLabel.setText("Caption: " + event.getPhoto().getCaption());
 			}
 		});
 
@@ -49,9 +51,23 @@ public class Spiral implements EntryPoint {
 				carousel.next();
 			}
 		});
+		
+		CheckBox decel = new CheckBox("Decelerate");
+		decel.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				if (((CheckBox)event.getSource()).getValue()) {
+					carousel.setAcceleration(.9);
+				} else {
+					carousel.setAcceleration(1.0);
+				}
+			}
+		});
+		decel.setValue(true);
+		
 		RootPanel.get("carouselDiv").add(carousel);
 		RootPanel.get().add(clockwise);
 		RootPanel.get().add(counterclockwise);
+		RootPanel.get().add(decel);
 		
 		//Update Photos button
 		Element submitButton = DOM.getElementById("submitPhotoData");
@@ -61,7 +77,6 @@ public class Spiral implements EntryPoint {
 			}
 		});
 		Event.sinkEvents(submitButton, Event.ONCLICK);
-
 	}
 
 	private void loadPhotos() {
