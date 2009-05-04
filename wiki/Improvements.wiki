@@ -1,6 +1,5 @@
 #summary Possible improvements to make
 
-  * Scale mouse sensitivity to size of carousel.
   * fix popup positioning before image loaded.
   * fix image sizes sometimes off on subsequent loads.
   * focus photo with double click.
