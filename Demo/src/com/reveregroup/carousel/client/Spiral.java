@@ -56,7 +56,7 @@ public class Spiral implements EntryPoint {
 		decel.addClickHandler(new ClickHandler() {
 			public void onClick(ClickEvent event) {
 				if (((CheckBox)event.getSource()).getValue()) {
-					carousel.setAcceleration(.9);
+					carousel.setAcceleration(.998);
 				} else {
 					carousel.setAcceleration(1.0);
 				}
