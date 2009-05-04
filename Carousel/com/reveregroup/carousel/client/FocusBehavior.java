@@ -54,7 +54,7 @@ public class FocusBehavior {
 				if (popup == null) {
 					lightbox = DOM.createDiv();
 				    lightbox.setClassName("lightbox");
-				    if (getUserAgent().contains("msie")) {
+				    if (Utils.getUserAgent().contains("MSIE")) {
 				    	lightbox.setClassName("lightbox lightboxIE");
 				    }
 				    lightbox.getStyle().setProperty("zIndex", "100");
@@ -98,8 +98,4 @@ public class FocusBehavior {
 		focusDecoratorWidget = widget;
 		dockPanel.add(widget, position);
 	}
-	
-	private static native String getUserAgent() /*-{
-		return navigator.userAgent.toLowerCase();
-	}-*/;
 }

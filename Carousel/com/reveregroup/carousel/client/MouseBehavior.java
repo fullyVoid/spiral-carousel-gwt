@@ -11,7 +11,7 @@ import com.reveregroup.carousel.client.events.PhotoClickEvent;
 import com.reveregroup.carousel.client.events.PhotoClickHandler;
 
 public class MouseBehavior {
-	private final int maxDist = 30;
+	private final double maxVelocity = .3;
 	
 	private Carousel target;
 	int lastXValue;
@@ -34,11 +34,12 @@ public class MouseBehavior {
 			public void onMouseMove(MouseMoveEvent event) {
 				if (mouseDown == true) {
 					int distance = event.getX() - lastXValue;
-					if (distance > maxDist)
-						distance = maxDist;
-					if (distance < -maxDist)
-						distance = -maxDist;
-					target.setVelocity(distance / -50.0);
+					double velocity = distance / ((double)target.getOffsetWidth()) * -4.0;
+					if (velocity > maxVelocity)
+						velocity = maxVelocity;
+					if (velocity < -maxVelocity)
+						velocity = -maxVelocity;
+					target.setVelocity(velocity);
 					lastXValue = event.getX();
 				}
 			}
