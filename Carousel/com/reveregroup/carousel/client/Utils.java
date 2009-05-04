@@ -35,6 +35,10 @@ public class Utils {
 		return velocity * (acceleration - 1) / Math.log(acceleration);
 	}
 	
+	public static double distanceForXTicks(double velocity, double acceleration, int ticks) {
+		return velocity * (Math.pow(acceleration, ticks) - 1) / Math.log(acceleration);
+	}
+	
 	public static double velocityForDistance(double distance, double acceleration, double finalVelocity) {
 		if (distance < 0)
 			finalVelocity = -finalVelocity;
