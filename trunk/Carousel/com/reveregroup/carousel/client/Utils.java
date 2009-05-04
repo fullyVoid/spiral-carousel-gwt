@@ -75,4 +75,8 @@ public class Utils {
 		
 		return a;
 	}
+	
+	public static native String getUserAgent() /*-{
+		return navigator.userAgent;
+	}-*/;
 }
