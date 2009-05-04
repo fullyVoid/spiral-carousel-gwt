@@ -272,9 +272,10 @@ public class Carousel extends Composite {
 	boolean timerOn;
 	double velocity;
 	Timer timer = new CTimer();
+	long lastTime;
 
-	double acceleration = .9;
-	double velocityThreshold = .002;
+	double acceleration = .998;
+	double velocityThreshold = .00002;
 
 	/**
 	 * Acceleration determines how fast the carousel slows down or speeds up as
@@ -298,11 +299,21 @@ public class Carousel extends Composite {
 
 	private class CTimer extends Timer {
 		public void run() {
+			long currentTime = System.currentTimeMillis();
+			int ticks = (int) (currentTime - lastTime);
+			lastTime = currentTime;
+			
 			if (acceleration == 1.0) {
-				setCurrentRotation(currentRotation + velocity);
+				setCurrentRotation(currentRotation + ticks * velocity);
 			} else {
-				setCurrentRotation(currentRotation + Utils.distanceForOneTick(velocity, acceleration));
-				setVelocity(velocity * acceleration);
+				double newVelocity = velocity * Math.pow(acceleration, ticks);
+				if (newVelocity < velocityThreshold && newVelocity > -velocityThreshold) {
+					setCurrentRotation(currentRotation + Utils.distanceFromStartingVelocity(velocity, acceleration, velocityThreshold));
+					setVelocity(0.0);
+				} else {
+					setCurrentRotation(currentRotation + Utils.distanceForXTicks(velocity, acceleration, ticks));
+					setVelocity(velocity * Math.pow(acceleration, ticks));
+				}
 			}
 		}
 	}
@@ -319,6 +330,7 @@ public class Carousel extends Composite {
 			}
 			this.velocity = 0;
 		} else if (!timerOn) {
+			lastTime = System.currentTimeMillis();
 			timer.scheduleRepeating(33);
 			timerOn = true;
 			timer.run();
