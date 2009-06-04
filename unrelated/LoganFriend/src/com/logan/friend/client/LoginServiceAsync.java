@@ -7,6 +7,6 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
  */
 public interface LoginServiceAsync {
 	void login(String loginName, String password, AsyncCallback<User> callback);
-	void loginWithFriendConnect(Long friendConnectId, AsyncCallback<User> callback);
+	void loginWithFriendConnect(String friendConnectId, AsyncCallback<User> callback);
 	void register(User user, AsyncCallback<User> callback);
 }

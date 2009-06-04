@@ -1,6 +1,9 @@
 package com.logan.friend.server;
 
+import javax.servlet.http.Cookie;
+
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.logan.friend.client.Constants;
 import com.logan.friend.client.LoginService;
 import com.logan.friend.client.User;
 
@@ -16,9 +19,21 @@ public class LoginServiceImpl extends RemoteServiceServlet implements LoginServi
 		return user;
 	}
 
-	public User loginWithFriendConnect(Long friendConnectId) {
+	public User loginWithFriendConnect(String friendConnectId) {
+		if (friendConnectId == null)
+			return null;
+		String securityToken = null;
+		for (Cookie cookie : getThreadLocalRequest().getCookies()) {
+			if (("fcauth" + Constants.FRIEND_CONNECT_ID).equals(cookie.getName())) {
+				securityToken = cookie.getValue();
+				break;
+			}
+		}
+		if (securityToken == null)
+			return null;
+		
+		
 		User user = UserManager.get().getFC(friendConnectId);
-		//TODO This is where it's at.
 		return user;
 	}
 

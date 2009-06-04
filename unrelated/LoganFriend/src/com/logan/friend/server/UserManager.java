@@ -31,7 +31,7 @@ public class UserManager {
 		return null;
 	}
 	
-	public User getFC(Long id) {
+	public User getFC(String id) {
 		for (User u : users) {
 			if (id.equals(u.getFriendConnectId())) {
 				return u;

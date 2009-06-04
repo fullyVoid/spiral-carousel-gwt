@@ -36,20 +36,9 @@ public class LoganFriend implements EntryPoint {
 	private TextBox password = new PasswordTextBox();
 
 	public void onModuleLoad() {
-		RootPanel.get("userList").add(new Button("Who am I?", new ClickHandler() {
-			public void onClick(ClickEvent event) {
-				userService.whoAmI(new AsyncCallback<User>() {
-					public void onSuccess(User user) {
-						if (user == null) {
-							Window.alert("You are not anyone.");
-						} else {
-							Window.alert(user.getName());
-						}
-					}
-					public void onFailure(Throwable caught) { }
-				});
-			}
-		}));
+		registerFriendConnectUserLoaded(this);
+		
+		userList.setVisibleItemCount(10);
 		RootPanel.get("userList").add(userList);
 		RootPanel.get("loginName").add(loginName);
 		RootPanel.get("password").add(password);
@@ -86,7 +75,23 @@ public class LoganFriend implements EntryPoint {
 				});
 			}
 		}));
+		RootPanel.get("loginOptions").add(new Button("Who am I?", new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				userService.whoAmI(new AsyncCallback<User>() {
+					public void onSuccess(User user) {
+						if (user == null) {
+							Window.alert("You are not anyone.");
+						} else {
+							Window.alert(user.getName());
+						}
+					}
+					public void onFailure(Throwable caught) { }
+				});
+			}
+		}));
+		renderFCSignInButton();
 		
+		refreshUserList();
 	}
 	
 	private void refreshUserList() {
@@ -103,4 +108,18 @@ public class LoganFriend implements EntryPoint {
 			};
 		});
 	}
+	
+	public void loginFCUser(String friendConnectId) {
+		loginService.loginWithFriendConnect(friendConnectId, null);
+	}
+	
+	private native void registerFriendConnectUserLoaded(LoganFriend app) /*-{
+		$wnd.friendConnectUserLoaded = function(viewerId) {
+			app.@com.logan.friend.client.LoganFriend::loginFCUser(Ljava/lang/String;)(viewerId);
+		};
+	}-*/;
+	
+	private native void renderFCSignInButton() /*-{
+		$wnd.google.friendconnect.renderSignInButton({id: 'friendConnectLogin', style: 'long'});
+	}-*/;
 }

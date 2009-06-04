@@ -2,10 +2,10 @@ package com.logan.friend.client;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
-public class User implements IsSerializable{
+public class User implements IsSerializable {
 	String name;
 	Long id;
-	Long friendConnectId;
+	String friendConnectId;
 	String phrase;
 
 	String loginName;
@@ -27,11 +27,11 @@ public class User implements IsSerializable{
 		this.id = id;
 	}
 
-	public Long getFriendConnectId() {
+	public String getFriendConnectId() {
 		return friendConnectId;
 	}
 
-	public void setFriendConnectId(Long friendConnectId) {
+	public void setFriendConnectId(String friendConnectId) {
 		this.friendConnectId = friendConnectId;
 	}
 
