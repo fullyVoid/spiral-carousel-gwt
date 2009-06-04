@@ -1,8 +1,9 @@
 package com.logan.friend.client;
 
-import com.google.gwt.user.client.rpc.IsSerializable;
+import java.io.Serializable;
 
-public class User implements IsSerializable {
+@SuppressWarnings("serial")
+public class User implements Serializable {
 	String name;
 	Long id;
 	String friendConnectId;
