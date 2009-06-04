@@ -2,6 +2,7 @@ package com.logan.friend.server;
 
 import javax.servlet.http.Cookie;
 
+import com.google.appengine.repackaged.com.google.common.base.Log;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.logan.friend.client.Constants;
 import com.logan.friend.client.LoginService;
@@ -12,7 +13,6 @@ import com.logan.friend.client.User;
  */
 @SuppressWarnings("serial")
 public class LoginServiceImpl extends RemoteServiceServlet implements LoginService {
-
 	public User login(String loginName, String password) {
 		User user = UserManager.get().getByLogin(loginName, password);
 		getThreadLocalRequest().getSession().setAttribute("currentUser", user);
@@ -31,6 +31,8 @@ public class LoginServiceImpl extends RemoteServiceServlet implements LoginServi
 		}
 		if (securityToken == null)
 			return null;
+		
+		//TODO
 		
 		
 		User user = UserManager.get().getFC(friendConnectId);

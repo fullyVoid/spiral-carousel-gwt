@@ -110,7 +110,17 @@ public class LoganFriend implements EntryPoint {
 	}
 	
 	public void loginFCUser(String friendConnectId) {
-		loginService.loginWithFriendConnect(friendConnectId, null);
+		loginService.loginWithFriendConnect(friendConnectId, new AsyncCallback<User>() {
+			public void onSuccess(User result) {
+				if (result == null)
+					Window.alert("No User.");
+				else
+					Window.alert(result.toString());
+			}
+			public void onFailure(Throwable caught) {
+				Window.alert("Error!");
+			}
+		});
 	}
 	
 	private native void registerFriendConnectUserLoaded(LoganFriend app) /*-{

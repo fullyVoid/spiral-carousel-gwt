@@ -60,4 +60,11 @@ public class User implements Serializable {
 		this.password = password;
 	}
 
+	@Override
+	public String toString() {
+		return "User::name:" + name + ", login:" + loginName + ", password:" + password + ", FCid:" + friendConnectId;
+	}
+	
+	
+
 }
