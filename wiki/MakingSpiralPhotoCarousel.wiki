@@ -1,4 +1,6 @@
-#summary Making Spiral Photo Carousel
+#summary Behind the making of Spiral Photo Carousel
+
+=Making Spiral Photo Carousel=
 
 A fellow consultant Dave Lo and I were recently commissioned to develop a GWT photo carousel based on Doug Greenall’s JavaScript implementation at http://douggreenall.co.uk/site/?p=232. (I have a special place in my heart for Doug as a fellow artificial intelligence major.) In a few days we had developed [http://spiral-carousel-gwt.googlecode.com/svn/tags/demo/Spiral.html this] version with a few innovations of our own.
 
