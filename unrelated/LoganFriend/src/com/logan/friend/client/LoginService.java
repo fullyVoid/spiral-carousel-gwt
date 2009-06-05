@@ -11,4 +11,5 @@ public interface LoginService extends RemoteService {
 	User login(String loginName, String password);
 	User loginWithFriendConnect(String friendConnectId);
 	User register(User user);
+	void logout();
 }

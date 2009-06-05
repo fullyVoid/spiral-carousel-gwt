@@ -89,6 +89,29 @@ public class LoganFriend implements EntryPoint {
 				});
 			}
 		}));
+		RootPanel.get("loginOptions").add(new Button("OPEN SOCIAL STINKS??", new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				loginService.loginWithFriendConnect("09553983068234416162", new AsyncCallback<User>() {
+					public void onSuccess(User result) {
+						if (result == null)
+							Window.alert("No User.");
+						else
+							refreshUserList();
+							//Window.alert(result.toString());
+					}
+					public void onFailure(Throwable caught) {
+						Window.alert("Error!");
+					}
+				});
+			}
+		}));
+		
+		RootPanel.get("loginOptions").add(new Button("Log out", new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				loginService.logout(null);
+				logoutFriend();
+			};
+		}));
 		renderFCSignInButton();
 		
 		refreshUserList();
@@ -115,7 +138,8 @@ public class LoganFriend implements EntryPoint {
 				if (result == null)
 					Window.alert("No User.");
 				else
-					Window.alert(result.toString());
+					refreshUserList();
+					//Window.alert(result.toString());
 			}
 			public void onFailure(Throwable caught) {
 				Window.alert("Error!");
@@ -131,5 +155,9 @@ public class LoganFriend implements EntryPoint {
 	
 	private native void renderFCSignInButton() /*-{
 		$wnd.google.friendconnect.renderSignInButton({id: 'friendConnectLogin', style: 'long'});
+	}-*/;
+	
+	private native void logoutFriend() /*-{
+		$wnd.google.friendconnect.requestSignOut();
 	}-*/;
 }
