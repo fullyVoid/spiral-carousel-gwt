@@ -1,0 +1,82 @@
+#summary Making Spiral Photo Carousel
+
+A fellow consultant Dave Lo and I were recently commissioned to develop a GWT photo carousel based on Doug Greenall’s JavaScript implementation at http://douggreenall.co.uk/site/?p=232. (I have a special place in my heart for Doug as a fellow artificial intelligence major.) In a few days we had developed [http://spiral-carousel-gwt.googlecode.com/svn/tags/demo/Spiral.html this] version with a few innovations of our own.
+
+In this series of articles I will describe our implementation and how we overcame a number of challenges we faced.
+
+===Laying out the photos===
+The first step for us was laying out the photos. We decided to display a fixed number of photos (8) at a time, rotating through a possibly larger collection of photos. We would achieve the illusion of 3D by making the images in the back smaller and slightly higher than the images in the front. This gives the impression that a circle of images is being viewed from slightly above.
+
+The math for this is fairly simple in theory—just a little bit of trigonometry based on an angle of rotation around the circle and a radius.
+{{{
+double x = -Math.sin(angle); // simple x coordinate in unit circle
+double y = -Math.cos(angle); // simple y coordinate in unit circle
+}}}
+The signs and functions are a bit turned around to accommodate a non-standard coordinate plane that we are using. First of all, the y-axis is flipped to match screen coordinates, which increase as you go down the page. Second we needed the angle to start at zero for the front (bottom) image and increase moving to the left. The resulting system looks like this:
+ 
+So all we do is find the angle for each of our images, calculate the x and y coordinates based on the above formula, then flatten out the y axis by scaling it down and shrink or enlarge the images based on their y coordinate. Here’s the breakdown:
+ 
+Step 1: Get images coordinates for unit circle.
+
+ 
+Step 2: Scale X and Y axes. 
+
+ 
+Step 3: Scale images.
+
+ 
+Step 4: Move images up and down a bit to achieve spiral look.
+
+Note that with this last step, we added another image. We now have two in the back-most position, one high and one low.
+
+The code for this can be found in the placeImages() method of the Carousel class (http://code.google.com/p/spiral-carousel-gwt/source/browse/trunk/Carousel/com/reveregroup/carousel/client/Carousel.java).
+
+===Rotating through all the Photos===
+The carousel is designed to be able to rotate through a large list of images, showing nine at a time. It also pre-loads six unseen images, the three next and the three previous images relative to the nine that are shown.
+
+We thought of it in terms of a sliding window. For example, if we have twenty photos in our collection, we would store them in the master list like this (zero-based).
+||0||1||2||3||4||5||6||7||8||9||10||11||12||13||14||15||16||17||18||19||
+
+Then there would be a sliding window indicating which nine images are currently showing:
+||0||1||2||3||[4||5||6||7||8||9||10||11||12]||13||14||15||16||17||18||19||
+
+There is second, wider window that also includes the pre-loaded images.
+||0||{1||2||3||[4||5||6||7||8||9||10||11||12]||13||14||15}||16||17||18||19||
+
+We use a single variable currentPhotoIndex to store this state. currentPhotoIndex is the zero-based index of the front-most photo. This is the photo at the center of our sliding window. We can then use this value and the constants for the number of images to show and the number to preload to figure out which images to load. For example, this window would represent the state when currentPhotoIndex is 8.
+||0||{1||2||3||[4||5||6||7||*8*||9||10||11||12]||13||14||15}||16||17||18||19||
+
+The master list only stores the URLs and captions of photos. The photos that are displayed or preloaded each have an Image widget that loads the image and displays if (if applicable). These images are stored in a separate array. Here are a couple of example states. Note how the window wraps.
+currentPhotoIndex = 14
+||0||1}||2||3||4||5||6||{7||8||9||[10||11||12||13||*14*||15||16||17||18]||19||
+
+||7||8||9||10||11||12||13||14||15||16||17||18||19||0||1||
+
+currentPhotoIndex = 0 (the initial state)
+||*0*||1||2||3||4]||5||6||7}||8||9||10||11||12||{13||14||15||[16||17||18||19||
+
+||13||14||15||16||17||18||19||0||1||2||3||4||5||6||7||
+
+The setCurrentPhotoIndex method of Carousel does the work of setting up the images in the smaller image array based on the currentPhotoIndex and the values in the master list. Now all we have to do is display the middle nine images of the image array in their correct spots on the screen (see Laying Out the Photos above) and hide the outer six.
+
+Here is how the last example above (currentPhotoIndex = 0) would be rendered. (The images with gray boarders represent pre-loaded images that are not visible.)
+ 
+===Smooth rotation===
+There is one final trick, though. We do not just switch photos between the nine fixed positions. Instead we need a smooth transition between positions. In fact we have a practically infinite number of states between the basic image positions.
+We take care of this in a similar way, with a variable called currentRotation. While currentPhotoIndex is an integer type, currentRotation is a double. It reflects not only which photo is currently in front but also whatever distance it is from the exact front position.
+currentRotation rounded to the nearest whole number is currentPhotoIndex. The remaining decimal is the fraction of the distance between base photo positions that all images are offset. Here are some examples.
+ 
+currentRotation: 1.0 --> currentPhotoIndex: 1 / extra rotation: 0.0 x 45° = 0.0°
+
+ 
+currentRotation: 13.3 --> currentPhotoIndex: 13 / extra rotation: 0.3 x 45° = +13.5°
+
+  
+currentRotation: 4.6 --> currentPhotoIndex: 5 / extra rotation: -0.6 x 45° = -27.0°
+
+What we do is expose this currentRotation as the interface to Carousel and use it to set currentPhotoIndex, which is only internally accessible.
+Making it Spin
+In addition to exposing an API for setting the current rotation, the Carousel has APIs for making it spin continuously.
+The setVelocity() method starts the carousel moving continuously. The value of velocity is in photos-per-millisecond so it should be quite small.
+There is also a setAcceleration() method that tells the Carousel how quickly to slow down or speed up. Acceleration is actually a multiplier, so a value of 1.0 makes for a constant speed. The default value for acceleration is .998. This makes for a nice deceleration after the user drags the carousel to start it spinning.
+An acceleration value less than 1.0 also makes another feature possible. The carousel can calculate how fast it needs to start spinning in order to come to rest at a certain point, given a certain deceleration rate. This feature is used by calling the rotateTo() and rotateBy() methods. rotateTo() sets the Carousel to a velocity that will cause it to come to rest at the specified rotation value (see currentRotation above). rotateBy() sets the Carousel to a velocity that will cause it to end up a certain distance from its current position. This distance is also measured in photos. Carousel also exposes next() and prev() methods that use rotateTo() to go to the next or previous photo.
