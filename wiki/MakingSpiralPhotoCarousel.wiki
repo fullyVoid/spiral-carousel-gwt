@@ -71,21 +71,27 @@ currentPhotoIndex = 0 (the initial state)
 The setCurrentPhotoIndex method of Carousel does the work of setting up the images in the smaller image array based on the currentPhotoIndex and the values in the master list. Now all we have to do is display the middle nine images of the image array in their correct spots on the screen (see Laying Out the Photos above) and hide the outer six.
 
 Here is how the last example above (currentPhotoIndex = 0) would be rendered. (The images with gray boarders represent pre-loaded images that are not visible.)
- 
+
+http://spiral-carousel-gwt.googlecode.com/svn/wiki/images/numbered-images.gif
+
 ===Smooth rotation===
 There is one final trick, though. We do not just switch photos between the nine fixed positions. Instead we need a smooth transition between positions. In fact we have a practically infinite number of states between the basic image positions.
 
 We take care of this in a similar way, with a variable called currentRotation. While currentPhotoIndex is an integer type, currentRotation is a double. It reflects not only which photo is currently in front but also whatever distance it is from the exact front position.
 
 currentRotation rounded to the nearest whole number is currentPhotoIndex. The remaining decimal is the fraction of the distance between base photo positions that all images are offset. Here are some examples.
- 
-currentRotation: 1.0 --> currentPhotoIndex: 1 / extra rotation: 0.0 x 45° = 0.0°
 
- 
-currentRotation: 13.3 --> currentPhotoIndex: 13 / extra rotation: 0.3 x 45° = +13.5°
+http://spiral-carousel-gwt.googlecode.com/svn/wiki/images/rotation1.gif
 
-  
-currentRotation: 4.6 --> currentPhotoIndex: 5 / extra rotation: -0.6 x 45° = -27.0°
+*currentRotation: 1.0 --> currentPhotoIndex: 1 / extra rotation: 0.0 x 45° = 0.0°*
+
+http://spiral-carousel-gwt.googlecode.com/svn/wiki/images/rotation2.gif
+
+*currentRotation: 13.3 --> currentPhotoIndex: 13 / extra rotation: 0.3 x 45° = +13.5°*
+
+http://spiral-carousel-gwt.googlecode.com/svn/wiki/images/rotation3.gif
+
+*currentRotation: 4.6 --> currentPhotoIndex: 5 / extra rotation: -0.6 x 45° = -27.0°*
 
 What we do is expose this currentRotation as the interface to Carousel and use it to set currentPhotoIndex, which is only internally accessible.
 
