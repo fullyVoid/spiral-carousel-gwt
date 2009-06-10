@@ -57,7 +57,7 @@ currentPhotoIndex = 14
 
 
 currentPhotoIndex = 0 (the initial state)
-||<font color="blue"><b><u>0</b></u></font>||<font color="blue">1</font>||<font color="blue">2</font>||<font color="blue">3</font>||<font color="blue">4</font><b>]</b>||<font color="gray">5</font>||<font color="gray">6</font>||<font color="gray">7</font><b>}</b>||8||9||10||11||12||<b>{</b><font color="gray">13</font>||<font color="gray">14</font>||<font color="gray">15</font>||<b>[</b><font color="blue">16</font>||<font color="blue">17</font>||<font color="blue">18</font>||<font color="blue">19</font>||
+||<font color="blue"><b><u>0</u></b></font>||<font color="blue">1</font>||<font color="blue">2</font>||<font color="blue">3</font>||<font color="blue">4</font><b>]</b>||<font color="gray">5</font>||<font color="gray">6</font>||<font color="gray">7</font><b>}</b>||8||9||10||11||12||<b>{</b><font color="gray">13</font>||<font color="gray">14</font>||<font color="gray">15</font>||<b>[</b><font color="blue">16</font>||<font color="blue">17</font>||<font color="blue">18</font>||<font color="blue">19</font>||
 
 ||<b>{</b><font color="gray">13</font>||<font color="gray">14</font>||<font color="gray">15</font>||<b>[</b><font color="blue">16</font>||<font color="blue">17</font>||<font color="blue">18</font>||<font color="blue">19</font>||<font color="blue"><b><u>0</u></b></font>||<font color="blue">1</font>||<font color="blue">2</font>||<font color="blue">3</font>||<font color="blue">4</font><b>]</b>||<font color="gray">5</font>||<font color="gray">6</font>||<font color="gray">7</font><b>}</b>||
 
