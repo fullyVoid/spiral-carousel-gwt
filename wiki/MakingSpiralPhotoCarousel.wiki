@@ -103,3 +103,25 @@ The setVelocity() method starts the carousel moving continuously. The value of v
 There is also a setAcceleration() method that tells the Carousel how quickly to slow down or speed up. Acceleration is actually a multiplier, so a value of 1.0 makes for a constant speed. The default value for acceleration is .998. This makes for a nice deceleration after the user drags the carousel to start it spinning.
 
 An acceleration value less than 1.0 also makes another feature possible. The carousel can calculate how fast it needs to start spinning in order to come to rest at a certain point, given a certain deceleration rate. This feature is used by calling the rotateTo() and rotateBy() methods. rotateTo() sets the Carousel to a velocity that will cause it to come to rest at the specified rotation value (see currentRotation above). rotateBy() sets the Carousel to a velocity that will cause it to end up a certain distance from its current position. This distance is also measured in photos. Carousel also exposes next() and prev() methods that use rotateTo() to go to the next or previous photo.
+
+===Interacting with the Carousel===
+What has been covered so far is the core behavior of the Carousel. Now what if we want to make the carousel interactive—for example allowing a person to spin through the photos or select a photo for a closer look?
+
+We decided that user interaction should be defined separately from the core behavior of the Carousel. This allows the Carousel to be easily configured for use in a maximum variety of situations. To this end, there are two ways to enable user interaction with the Carousel widget.
+
+The simple method is to add additional widgets to the page that call the Carousel API (i.e. setRotation(), setVelocity(), setAcceleration(), rotateBy(), rotateTo(), next(), prev()). A simple example would be adding "Next" and "Previous" buttons or "Start", "Stop" and "Reverse" buttons. Note that it might also be helpful to have access to the current state of the Carousel. The following methods are exposed for this purpose: getRotation(), getPhotoIndex(), getVelocity(), getAcceleration() and getCurrentPhoto().
+
+The second method is to add event handlers to the Carousel widget to intercept mouse events and then call the Carousel API in response to those events. The Carousel exposes these standard mouse event handler registration methods...
+  * addClickHandler()
+  * addMouseDownHandler()
+  * addMouseMoveHandler()
+  * addMouseUpHandler()
+
+The Carousel also exposes some of its own custom events...
+  * addPhotoClickHandler() – Fired when any photo in the carousel is clicked.
+  * addPhotoToFrontHandler() – Fired when a new photo is rotated into the front-most position.
+
+===Or Just use the Default Behavior...===
+Now that's all fair and well, but who really wants to learn a new API and write a bunch of code for allowing their users to interact with the Carousel, when most of the users are going to be very happy with a standard way of doing things. Fear not! Carousel comes with default behavior that allows users to either spin the Carousel by dragging the mouse or spin to a specific photo just by clicking it.
+
+To activate this default behavior... do nothing. Just use the default constructor and this behavior is automatically activated. To deactivate the default behavior either pass false to the "useDefaultMouseBehavior" constructor parameter or call setUseDefaultMouseBehavior(false) at any time.
