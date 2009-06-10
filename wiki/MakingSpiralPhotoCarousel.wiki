@@ -17,7 +17,7 @@ double y = -Math.cos(angle); // simple y coordinate in unit circle
 The signs and functions are a bit turned around to accommodate a non-standard coordinate plane that we are using. First of all, the y-axis is flipped to match screen coordinates, which increase as you go down the page. Second we needed the angle to start at zero for the front (bottom) image and increase moving to the left. The resulting system looks like this:
 
 http://spiral-carousel-gwt.googlecode.com/svn/wiki/images/coordinate-system.gif
- 
+
 So all we do is find the angle for each of our images, calculate the x and y coordinates based on the above formula, then flatten out the y axis by scaling it down and shrink or enlarge the images based on their y coordinate. Here’s the breakdown:
 
 http://spiral-carousel-gwt.googlecode.com/svn/wiki/images/step1.gif
@@ -25,15 +25,15 @@ http://spiral-carousel-gwt.googlecode.com/svn/wiki/images/step1.gif
 *Step 1: Get images coordinates for unit circle.*
 
 http://spiral-carousel-gwt.googlecode.com/svn/wiki/images/step2.gif
- 
+
 *Step 2: Scale X and Y axes.*
 
 http://spiral-carousel-gwt.googlecode.com/svn/wiki/images/step3.gif
- 
+
 *Step 3: Scale images.*
 
 http://spiral-carousel-gwt.googlecode.com/svn/wiki/images/step4.gif
- 
+
 *Step 4: Move images up and down a bit to achieve spiral look.*
 
 Note that with this last step, we added another image. We now have two in the back-most position, one high and one low.
