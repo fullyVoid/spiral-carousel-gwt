@@ -13,4 +13,5 @@ public interface UserService extends RemoteService {
 	void updateUser(User user);
 	List<User> fetchUsers();
 	User whoAmI();
+	void clearUsers();
 }

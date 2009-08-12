@@ -11,4 +11,5 @@ public interface UserServiceAsync {
 	void updateUser(User user, AsyncCallback<Void> callback);
 	void fetchUsers(AsyncCallback<List<User>> callback);
 	void whoAmI(AsyncCallback<User> callback);
+	void clearUsers(AsyncCallback<Void> callback);
 }

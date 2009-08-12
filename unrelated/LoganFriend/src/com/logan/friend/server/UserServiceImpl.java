@@ -26,5 +26,9 @@ public class UserServiceImpl extends RemoteServiceServlet implements UserService
 		return (User) getThreadLocalRequest().getSession().getAttribute("currentUser");
 	}
 
+	public void clearUsers() {
+		UserManager.get().clear();
+	}
+
 	
 }

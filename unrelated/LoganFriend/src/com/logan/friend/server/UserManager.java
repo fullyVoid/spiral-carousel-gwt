@@ -39,6 +39,15 @@ public class UserManager {
 		}
 		return null;
 	}
+
+	public User getFB(Long id) {
+		for (User u : users) {
+			if (id.equals(u.getFacebookId())) {
+				return u;
+			}
+		}
+		return null;
+	}
 	
 	public User merge(User user) {
 		User u = get(user.getId());
@@ -59,5 +68,9 @@ public class UserManager {
 	
 	public List<User> all() {
 		return users;
+	}
+	
+	public void clear() {
+		users.clear();
 	}
 }

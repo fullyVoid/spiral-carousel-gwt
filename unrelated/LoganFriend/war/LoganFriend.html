@@ -6,7 +6,7 @@
 <!-- with a "Standards Mode" doctype is supported, -->
 <!-- but may lead to some differences in layout.   -->
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:fb="http://www.facebook.com/2008/fbml>
 <head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 
@@ -15,10 +15,7 @@
 <!--                                                               -->
 <link type="text/css" rel="stylesheet" href="LoganFriend.css">
 
-<!--                                           -->
-<!-- Any title is fine                         -->
-<!--                                           -->
-<title>Web Application Starter Project</title>
+<title>Chicago-GTUG Google Friend Connect Authentication Demo</title>
 
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
 
@@ -50,20 +47,10 @@
   google.friendconnect.container.setParentUrl('/' /* location of rpc_relay.html and canvas.html */);
   var openSocialLoadCount = 0;
   google.friendconnect.container.initOpenSocialApi({
-    site: '13734107373303993349',
+    site: '06869252846758821728',
     onload: function(securityToken) {
 	    if (openSocialLoadCount++ > 0) {
-	    	var req = opensocial.newDataRequest();
-	    	req.add(req.newFetchPersonRequest("VIEWER"), "viewer_data");
-	    	req.send(function(data) {
-	    		if (data.get("viewer_data").hadError()) {
-		    		//not logged in
-	    		} else {
-					//alert(stringify(data.get("viewer_data")));
-					alert(data.get("viewer_data").getData().getId());
-		    		friendConnectUserLoaded(data.get("viewer_data").getData().getId());
-	    		}
-	    	});
+	    	friendConnectUserLoaded();
 	    }
 	}
   });
@@ -113,16 +100,18 @@ skin['DEFAULT_COMMENT_TEXT'] = '- add your comment here -';
 skin['HEADER_TEXT'] = 'Comments';
 google.friendconnect.container.renderSocialBar(
  { id: 'div-4331497685849880383',
-   site: '13734107373303993349',
+   site: '06869252846758821728',
    'view-params':{"scope":"SITE","features":"video,comment","showWall":"true"}
  },
   skin);
 </script>
 
-<h1>Web Application Starter Project</h1>
+<h1>Chicago-GTUG Google Friend Connect Authentication Demo</h1>
 <table align="center">
 	<tr>
-		<td id="friendConnectLogin">
+		<td>
+			<div id="facebookLogin"><div>
+			<div id="friendConnectLogin"></div>
 		</td>
 		<td>
 		<table>

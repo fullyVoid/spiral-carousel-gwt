@@ -9,7 +9,8 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 @RemoteServiceRelativePath("login")
 public interface LoginService extends RemoteService {
 	User login(String loginName, String password);
-	User loginWithFriendConnect(String friendConnectId);
+	User loginWithFriendConnect();
+	User loginWithFacebook();
 	User register(User user);
 	void logout();
 }

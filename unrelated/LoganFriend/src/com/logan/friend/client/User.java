@@ -7,6 +7,7 @@ public class User implements Serializable {
 	String name;
 	Long id;
 	String friendConnectId;
+	Long facebookId;
 	String phrase;
 
 	String loginName;
@@ -58,6 +59,15 @@ public class User implements Serializable {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+	
+
+	public Long getFacebookId() {
+		return facebookId;
+	}
+
+	public void setFacebookId(Long facebookId) {
+		this.facebookId = facebookId;
 	}
 
 	@Override

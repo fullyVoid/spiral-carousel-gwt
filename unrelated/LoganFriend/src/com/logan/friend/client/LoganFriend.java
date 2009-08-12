@@ -13,6 +13,10 @@ import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.PasswordTextBox;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
+import com.logan.friend.client.facebook.Facebook;
+import com.logan.friend.client.facebook.LoginButton;
+import com.logan.friend.client.facebook.TemplateData;
+import com.logan.friend.server.UserManager;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
@@ -36,7 +40,7 @@ public class LoganFriend implements EntryPoint {
 	private TextBox password = new PasswordTextBox();
 
 	public void onModuleLoad() {
-		registerFriendConnectUserLoaded(this);
+		registerJSFunctions(this);
 		
 		userList.setVisibleItemCount(10);
 		RootPanel.get("userList").add(userList);
@@ -62,6 +66,7 @@ public class LoganFriend implements EntryPoint {
 				user.setLoginName(loginName.getText());
 				user.setPassword(password.getText());
 				user.setName(user.getLoginName());
+				user.setPhrase("Unsocial User");
 				
 				loginService.register(user, new AsyncCallback<User>() {
 					public void onSuccess(User result) {
@@ -89,30 +94,42 @@ public class LoganFriend implements EntryPoint {
 				});
 			}
 		}));
-		RootPanel.get("loginOptions").add(new Button("OPEN SOCIAL STINKS??", new ClickHandler() {
-			public void onClick(ClickEvent event) {
-				loginService.loginWithFriendConnect("09553983068234416162", new AsyncCallback<User>() {
-					public void onSuccess(User result) {
-						if (result == null)
-							Window.alert("No User.");
-						else
-							refreshUserList();
-							//Window.alert(result.toString());
-					}
-					public void onFailure(Throwable caught) {
-						Window.alert("Error!");
-					}
-				});
-			}
-		}));
 		
 		RootPanel.get("loginOptions").add(new Button("Log out", new ClickHandler() {
 			public void onClick(ClickEvent event) {
-				loginService.logout(null);
+				loginService.logout(new AsyncCallback<Void>() {
+					public void onSuccess(Void result) {
+					}
+					public void onFailure(Throwable caught) {
+					}
+				});
 				logoutFriend();
 			};
 		}));
+		
+		RootPanel.get("userList").add(new Button("Clear Users", new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				userService.clearUsers(new AsyncCallback<Void>() {
+					public void onSuccess(Void result) {
+					}
+					public void onFailure(Throwable caught) {
+					}
+				});
+				loginService.logout(new AsyncCallback<Void>() {
+					public void onSuccess(Void result) {
+					}
+					public void onFailure(Throwable caught) {
+					}
+				});
+				userList.clear();
+				logoutFriend();
+			}
+		}));
+		
 		renderFCSignInButton();
+		
+//		Facebook.create(Constants.FACEBOOK_API);
+//		RootPanel.get("facebookLogin").add(new LoginButton(Facebook.get()));
 		
 		refreshUserList();
 	}
@@ -132,14 +149,14 @@ public class LoganFriend implements EntryPoint {
 		});
 	}
 	
-	public void loginFCUser(String friendConnectId) {
-		loginService.loginWithFriendConnect(friendConnectId, new AsyncCallback<User>() {
+	public void loginFCUser() {
+		loginService.loginWithFriendConnect(new AsyncCallback<User>() {
 			public void onSuccess(User result) {
 				if (result == null)
 					Window.alert("No User.");
 				else
+					Window.alert("Welcome " + result.getName());
 					refreshUserList();
-					//Window.alert(result.toString());
 			}
 			public void onFailure(Throwable caught) {
 				Window.alert("Error!");
@@ -147,9 +164,27 @@ public class LoganFriend implements EntryPoint {
 		});
 	}
 	
-	private native void registerFriendConnectUserLoaded(LoganFriend app) /*-{
-		$wnd.friendConnectUserLoaded = function(viewerId) {
-			app.@com.logan.friend.client.LoganFriend::loginFCUser(Ljava/lang/String;)(viewerId);
+	public void loginFBUser() {
+		loginService.loginWithFacebook(new AsyncCallback<User>() {
+			public void onSuccess(User result) {
+				if (result == null)
+					Window.alert("No User.");
+				else
+					Window.alert("Welcome " + result.getName());
+					refreshUserList();
+			}
+			public void onFailure(Throwable caught) {
+				Window.alert("Error!");
+			}
+		});
+	}
+	
+	private native void registerJSFunctions(LoganFriend app) /*-{
+		$wnd.friendConnectUserLoaded = function() {
+			app.@com.logan.friend.client.LoganFriend::loginFCUser()();
+		};
+		$wnd.facebookUserLoaded = function() {
+			app.@com.logan.friend.client.LoganFriend::loginFBUser()();
 		};
 	}-*/;
 	
@@ -159,5 +194,6 @@ public class LoganFriend implements EntryPoint {
 	
 	private native void logoutFriend() /*-{
 		$wnd.google.friendconnect.requestSignOut();
+		$wnd.FB.Connect.logout();
 	}-*/;
 }
