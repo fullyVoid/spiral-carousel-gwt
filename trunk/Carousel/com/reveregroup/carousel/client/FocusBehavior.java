@@ -1,5 +1,8 @@
 package com.reveregroup.carousel.client;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.logical.shared.CloseEvent;
 import com.google.gwt.event.logical.shared.CloseHandler;
@@ -31,14 +34,21 @@ public class FocusBehavior {
 	protected Widget focusDecoratorWidget = null;
 	
 	protected PhotoFocusEvent lastFocusEvent = null;
+	
+	protected List<HandlerRegistration> eventHandlers = new ArrayList<HandlerRegistration>(2);
 
 	public FocusBehavior(Carousel carousel) {
 		this.target = carousel;
 		handlerManager = new HandlerManager(this);
+	}
+	
+	public void start() {
+		if (eventHandlers.size() > 0)
+			return; //already started
 		
-		carousel.addPhotoClickHandler(new PhotoClickHandler() {
+		eventHandlers.add(target.addPhotoClickHandler(new PhotoClickHandler() {
 			public void photoClicked(PhotoClickEvent event) {
-				if (event.getPhotoIndex() == target.getCurrentPhotoIndex()) {
+				if (event.getPhotoIndex() == target.getPhotoIndex()) {
 					PhotoFocusEvent evt = new PhotoFocusEvent();
 					evt.setPhoto(event.getPhoto());
 					evt.setPhotoIndex(event.getPhotoIndex());
@@ -46,9 +56,9 @@ public class FocusBehavior {
 					handlerManager.fireEvent(evt);
 				}
 			}
-		});
+		}));
 		
-		addPhotoFocusHandler(new PhotoFocusHandler() {
+		eventHandlers.add(addPhotoFocusHandler(new PhotoFocusHandler() {
 			public void photoFocused(PhotoFocusEvent event) {
 			    
 				if (popup == null) {
@@ -80,7 +90,14 @@ public class FocusBehavior {
 				lightbox.getStyle().setProperty("display", "block");
 				popup.center();
 			}
-		});
+		}));		
+	}
+	
+	public void stop() {
+		for (HandlerRegistration handler : eventHandlers) {
+			handler.removeHandler();
+		}
+		eventHandlers.clear();		
 	}
 	
 	public HandlerRegistration addPhotoFocusHandler(PhotoFocusHandler handler) {
