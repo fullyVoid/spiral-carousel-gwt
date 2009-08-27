@@ -52,8 +52,12 @@ public class Carousel extends Composite {
 	private MouseBehavior mouseBehavior;
 
 	private FocusBehavior focusBehavior;
-
+	
 	public Carousel() {
+		this(true, true);
+	}
+
+	public Carousel(boolean useDefaultMouseBehavior, boolean useDefaultFocusBehavior) {
 		// Set up UI structure
 		carouselDock = new DockPanel();
 		imagePanel = new AbsolutePanel();
@@ -118,8 +122,12 @@ public class Carousel extends Composite {
 
 		// Rotate when mouse is dragged
 		mouseBehavior = new MouseBehavior(this);
+		if (useDefaultMouseBehavior)
+			mouseBehavior.start();
 		// Focus when current photo clicked
 		focusBehavior = new FocusBehavior(this);
+		if (useDefaultFocusBehavior)
+			focusBehavior.start();
 
 		// These are used to help make sure a photo click is not registered when
 		// the mouse is dragged.
@@ -133,6 +141,22 @@ public class Carousel extends Composite {
 				mouseMoved = true;
 			}
 		});
+	}
+	
+	public void setUseDefaultMouseBehavior(boolean useDefaultMouseBehavior) {
+		if (useDefaultMouseBehavior) {
+			mouseBehavior.start();
+		} else {
+			mouseBehavior.stop();
+		}
+	}
+	
+	public void setUseDefaultFocusBehavior(boolean useDefaultFocusBehavior) {
+		if (useDefaultFocusBehavior) {
+			focusBehavior.start();
+		} else {
+			focusBehavior.stop();
+		}
 	}
 
 	/**
@@ -149,40 +173,73 @@ public class Carousel extends Composite {
 			focusBehavior.setFocusDecoratorWidget(widget, position);
 	}
 
+	/**
+	 * Lay out the images based on the current rotation.
+	 */
 	private void placeImages() {
-		// Places images in the correct spots
-		int offsetWidth = imagePanel.getOffsetWidth();
-		int offsetHeight = imagePanel.getElement().getClientHeight();
+		// The size of the container the holds the images.
+		int containerWidth = imagePanel.getOffsetWidth();
+		int containerHeight = imagePanel.getElement().getClientHeight();
 
-		double imgHeight = offsetHeight * 3.0 / 8.0;
-		double imgWidth = imgHeight * 1.2;
-		double xRadius = (offsetWidth - imgWidth) / 2.0;
-		double yRadius = imgHeight / 3.0;
+		// The base dimensions for each image. Images are scaled from these base
+		// dimensions.
+		double boxHeight = containerHeight * 3.0 / 8.0;
+		double boxWidth = boxHeight * 1.2;
+		// The radius of the ellipse that the images are set around.
+		double xRadius = (containerWidth - boxWidth) / 2.0;
+		double yRadius = boxHeight / 3.0;
+		// A factor for achieving the spiral affect. The greater this value, the
+		// more pronounced the spiral effect.
 		double spiralSpread = yRadius * .5;
 
-		double degreeOffset = 0.0;
-		double rotationDecimal = currentRotation - Math.round(currentRotation);
-		degreeOffset = -(rotationDecimal * ((Math.PI) / 4));
+		// The fraction that the images are offset from a whole number rotation.
+		// This value will be between -0.5 and 0.5.
+		double decimalOffset = currentRotation - Math.round(currentRotation);
+		// The angle (in radians) that the images are offset from the base
+		// positions. Base positions are 0*, 45*, 90*, 135*, etc. This value
+		// will be between -22.5* and 22.5*.
+		double angleOffset = -(decimalOffset * ((Math.PI) / 4));
+
 		for (int i = 0; i < carouselSize; i++) {
 			CarouselImage image = images[i + preLoadSize];
-			double finalDegree = ((i * Math.PI) / 4) + degreeOffset;
-			double scale = 0.0;
-			double x = -Math.sin(finalDegree);
-			double y = -Math.cos(finalDegree);
-			scale = Math.pow(2, y);
-			int zindex = (int) (y * 10);
-			zindex += 10;
-			images[i + preLoadSize].getElement().getStyle().setProperty("zIndex", Integer.toString(zindex));
-			image.sizeToBounds((int) (scale * imgWidth), (int) (scale * imgHeight));
+			// The actual angle of the given image from the front.
+			double angle = ((i * Math.PI) / 4) + angleOffset;
+			// These are the simple x and y coordinates of the angel in a unit
+			// circle. We flipped some of the signs and dimensions around
+			// because our coordinate plane is a little turned around.
+			double x = -Math.sin(angle);
+			double y = -Math.cos(angle);
+			// The factor by which to scale the image (i.e. make it smaller or
+			// larger). This is based solely on the 'y' coordinate.
+			double scale = Math.pow(2, y);
+			// set the zindex so that images in the front appear on top of
+			// images behind.
+			int zindex = (int) (y * 10) + 10;
+			image.getElement().getStyle().setProperty("zIndex", Integer.toString(zindex));
 
-			int xcoord = (int) Math.round((x * xRadius) + (offsetWidth - image.getWidth()) / 2.0);
-			int ycoord = (int) Math.round((y * yRadius) + offsetHeight - imgHeight - yRadius - image.getHeight() / 2.0
-					- Math.round(spiralSpread * (i - 4 - rotationDecimal)));
+			// set the size of the image. The aspect ratio of the image is
+			// maintained as the image is scaled so that it fits inside the
+			// correct "box" dimensions.
+			image.sizeToBounds((int) (scale * boxWidth), (int) (scale * boxHeight));
+
+			// The x coordinate is obtained by simply scaling the unit-circle x
+			// coordinate to fit the container.
+			int xcoord = (int) Math.round((x * xRadius) + (containerWidth - image.getWidth()) / 2.0);
+			// The y coordinate is similarly calculated, except that the spiral
+			// factor is also added. Basically, the farther the image is around
+			// the circle, the farther down it is shifted to give the spiral
+			// effect.
+			int ycoord = (int) Math.round((y * yRadius) + containerHeight - boxHeight - yRadius - image.getHeight()
+					/ 2.0 - Math.round(spiralSpread * (i - 4 - decimalOffset)));
+
 			imagePanel.setWidgetPosition(image, xcoord, ycoord);
+
+			// Finally, fade out the images that are at the very back. Make sure
+			// the rest have full opacity.
 			if (i == 0) {
-				image.setOpacity(.5 - rotationDecimal);
+				image.setOpacity(.5 - decimalOffset);
 			} else if (i == carouselSize - 1) {
-				image.setOpacity(.5 + rotationDecimal);
+				image.setOpacity(.5 + decimalOffset);
 			} else {
 				image.setOpacity(1.0);
 			}
@@ -271,7 +328,7 @@ public class Carousel extends Composite {
 
 	boolean timerOn;
 	double velocity;
-	Timer timer = new CTimer();
+	Timer timer = new RotationTimer();
 	long lastTime;
 
 	double acceleration = .998;
@@ -297,21 +354,22 @@ public class Carousel extends Composite {
 		this.acceleration = acceleration;
 	}
 
-	private class CTimer extends Timer {
+	private class RotationTimer extends Timer {
 		public void run() {
 			long currentTime = System.currentTimeMillis();
 			int ticks = (int) (currentTime - lastTime);
 			lastTime = currentTime;
-			
+
 			if (acceleration == 1.0) {
-				setCurrentRotation(currentRotation + ticks * velocity);
+				setRotation(currentRotation + ticks * velocity);
 			} else {
 				double newVelocity = velocity * Math.pow(acceleration, ticks);
 				if (newVelocity < velocityThreshold && newVelocity > -velocityThreshold) {
-					setCurrentRotation(currentRotation + Utils.distanceFromStartingVelocity(velocity, acceleration, velocityThreshold));
+					setRotation(currentRotation
+							+ Utils.distanceFromStartingVelocity(velocity, acceleration, velocityThreshold));
 					setVelocity(0.0);
 				} else {
-					setCurrentRotation(currentRotation + Utils.distanceForXTicks(velocity, acceleration, ticks));
+					setRotation(currentRotation + Utils.distanceForXTicks(velocity, acceleration, ticks));
 					setVelocity(velocity * Math.pow(acceleration, ticks));
 				}
 			}
@@ -336,6 +394,10 @@ public class Carousel extends Composite {
 			timer.run();
 		}
 	}
+	
+	public double getVelocity() {
+		return velocity;
+	}
 
 	/**
 	 * The current rotational position of the carousel. Rotation is based on
@@ -343,7 +405,7 @@ public class Carousel extends Composite {
 	 * front of the carousel, currentRotation will be 2.0 (indicies are 0
 	 * based).
 	 */
-	public double getCurrentRotation() {
+	public double getRotation() {
 		return currentRotation;
 	}
 
@@ -353,14 +415,14 @@ public class Carousel extends Composite {
 	 * front of the carousel, currentRotation will be 2.0 (indicies are 0
 	 * based).
 	 */
-	private void setCurrentRotation(double value) {
-		int pi = getCurrentPhotoIndex();
+	public void setRotation(double value) {
+		int pi = getPhotoIndex();
 		currentRotation = Utils.modulus(value, photos.size());
 		setCurrentPhotoIndex((int) Math.round(currentRotation));
-		if (pi != getCurrentPhotoIndex()) {
+		if (pi != getPhotoIndex()) {
 			PhotoToFrontEvent event = new PhotoToFrontEvent();
-			event.setPhoto(photos.get(getCurrentPhotoIndex()));
-			event.setPhotoIndex(getCurrentPhotoIndex());
+			event.setPhoto(photos.get(getPhotoIndex()));
+			event.setPhotoIndex(getPhotoIndex());
 			fireEvent(event);
 		}
 		placeImages();
@@ -373,7 +435,7 @@ public class Carousel extends Composite {
 	 */
 	public void rotateTo(double position) {
 		if (acceleration >= 1.0) {
-			setCurrentRotation(position);
+			setRotation(position);
 			return;
 		}
 		double distance = Utils.modulus(position, photos.size()) - currentRotation;
@@ -392,7 +454,7 @@ public class Carousel extends Composite {
 	 */
 	public void rotateBy(double distance) {
 		if (acceleration >= 1.0) {
-			setCurrentRotation(currentRotation + distance);
+			setRotation(currentRotation + distance);
 			return;
 		}
 		setVelocity(Utils.velocityForDistance(distance, acceleration, velocityThreshold));
@@ -402,22 +464,26 @@ public class Carousel extends Composite {
 	 * Start an animated rotation to the previous photo.
 	 */
 	public void prev() {
-		rotateTo(getCurrentPhotoIndex() - 1.0);
+		rotateTo(getPhotoIndex() - 1.0);
 	}
 
 	/**
 	 * Start an animated rotation to the next photo.
 	 */
 	public void next() {
-		rotateTo(getCurrentPhotoIndex() + 1.0);
+		rotateTo(getPhotoIndex() + 1.0);
 	}
 
 	/**
 	 * Returns the zero-based index in the photo list of the photo that is
 	 * currently in front.
 	 */
-	public int getCurrentPhotoIndex() {
+	public int getPhotoIndex() {
 		return currentPhotoIndex;
+	}
+	
+	public Photo getCurrentPhoto() {
+		return photos.get(currentPhotoIndex);
 	}
 
 	/**

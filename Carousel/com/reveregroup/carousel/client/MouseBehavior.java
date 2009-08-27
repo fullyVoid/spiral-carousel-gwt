@@ -1,10 +1,14 @@
 package com.reveregroup.carousel.client;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.MouseDownEvent;
 import com.google.gwt.event.dom.client.MouseDownHandler;
 import com.google.gwt.event.dom.client.MouseMoveEvent;
 import com.google.gwt.event.dom.client.MouseMoveHandler;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Event.NativePreviewEvent;
 import com.reveregroup.carousel.client.events.PhotoClickEvent;
@@ -21,11 +25,18 @@ public class MouseBehavior {
 	int avgDist;
 	int avgTime;
 
+	protected List<HandlerRegistration> eventHandlers = new ArrayList<HandlerRegistration>(4);
+	
 	public MouseBehavior(Carousel carousel) {
 		this.target = carousel;
+	}
+	
+	public void start() {
+		if (eventHandlers.size() > 0)
+			return; //already started
 		
 		//rotate when mouse dragged
-		target.addMouseDownHandler(new MouseDownHandler() {
+		eventHandlers.add(target.addMouseDownHandler(new MouseDownHandler() {
 			public void onMouseDown(MouseDownEvent event) {
 				mouseDown = true;
 				if ((event.getNativeButton() & NativeEvent.BUTTON_LEFT) != 0) {
@@ -36,8 +47,8 @@ public class MouseBehavior {
 					target.setVelocity(0.0);
 				}
 			}
-		});
-		target.addMouseMoveHandler(new MouseMoveHandler() {
+		}));
+		eventHandlers.add(target.addMouseMoveHandler(new MouseMoveHandler() {
 			public void onMouseMove(MouseMoveEvent event) {
 				if (mouseDown == true) {
 					long curTime = System.currentTimeMillis();
@@ -65,20 +76,27 @@ public class MouseBehavior {
 					lastXValue = event.getX();
 				}
 			}
-		});
-		Event.addNativePreviewHandler(new Event.NativePreviewHandler() {
+		}));
+		eventHandlers.add(Event.addNativePreviewHandler(new Event.NativePreviewHandler() {
 			public void onPreviewNativeEvent(NativePreviewEvent event) {
 				if (event.getTypeInt() == Event.ONMOUSEUP) {
 					mouseDown = false;
 				}
 			}
-		});
+		}));
 		
 		//Rotate to an image when clicked.
-		target.addPhotoClickHandler(new PhotoClickHandler() {
+		eventHandlers.add(target.addPhotoClickHandler(new PhotoClickHandler() {
 			public void photoClicked(PhotoClickEvent event) {
 				target.rotateTo(event.getPhotoIndex());
 			}
-		});
+		}));
+	}
+	
+	public void stop() {
+		for (HandlerRegistration handler : eventHandlers) {
+			handler.removeHandler();
+		}
+		eventHandlers.clear();
 	}
 }
